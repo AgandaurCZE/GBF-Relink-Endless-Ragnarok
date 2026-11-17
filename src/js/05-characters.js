@@ -1,12 +1,8 @@
-/* js/04-characters.js: each character's own page at /characters/<slug>, with tabs.
+/* js/05-characters.js: each character's own page at /characters/<slug>, with tabs.
 
    CHARACTERS[] {name, slug, image, summary, tabs: [{id, label, blocks: [...]}]}
-   A block is one of (docs/DATA_REFERENCE.md has the details):
-     {type: "text",  title?, text}                       a paragraph; blank lines start a new paragraph
-     {type: "list",  title?, items: [text, ...]}         a bulleted list
-     {type: "table", title?, columns: [...], rows: [[...], ...]}
-     {type: "stats", title?, items: [{label, value}, ...]}   label and value pairs in a grid
-   The open tab is kept in the address (#skills), so a link can point at one tab. */
+   The blocks are drawn by js/04-blocks.js. The open tab is kept in the address (#skills),
+   so a link can point at one tab. */
 
 function characterRoute(c) {
   return 'characters/' + c.slug;
@@ -51,29 +47,4 @@ function characterTabs(c) {
     .querySelectorAll('.profile-tab')
     .forEach((b) => b.addEventListener('click', () => show(b.dataset.tab, true)));
   show(decodeURIComponent(location.hash.slice(1)), false);
-}
-
-function blocksHtml(blocks) {
-  return blocks.map(blockHtml).join('');
-}
-
-function blockHtml(b) {
-  const title = b.title ? `<h3>${esc(b.title)}</h3>` : '';
-  if (b.type === 'text')
-    return `<div class="block">${title}${String(b.text)
-      .split(/\n{2,}/)
-      .map((p) => `<p>${esc(p).replace(/\n/g, '<br>')}</p>`)
-      .join('')}</div>`;
-  if (b.type === 'list')
-    return `<div class="block">${title}<ul>${b.items.map((i) => `<li>${esc(i)}</li>`).join('')}</ul></div>`;
-  if (b.type === 'table') {
-    const head = b.columns.map((c) => `<th>${esc(c)}</th>`).join('');
-    const rows = b.rows.map((r) => `<tr>${r.map((v) => `<td>${esc(v)}</td>`).join('')}</tr>`).join('');
-    return `<div class="block">${title}<div class="table-wrap"><table><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table></div></div>`;
-  }
-  if (b.type === 'stats')
-    return `<div class="block">${title}<dl class="stats">${b.items
-      .map((i) => `<div><dt>${esc(i.label)}</dt><dd>${esc(i.value)}</dd></div>`)
-      .join('')}</dl></div>`;
-  return '';
 }

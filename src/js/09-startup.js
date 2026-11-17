@@ -23,6 +23,8 @@ function pageForPath(pathname) {
   );
   const character = GAME.CHARACTERS.find((c) => c.slug && characterRoute(c) === route);
   if (character) return { id: 'character', nav: 'characters', label: character.name, character };
+  const guide = GAME.GUIDES.find((g) => g.blocks?.length && guideRoute(g) === route);
+  if (guide) return { id: 'guide', nav: 'guides', label: guide.title, guide };
   return GAME.SITE.pages.find((p) => p.route === route) || { id: 'notfound', label: 'Page not found' };
 }
 
@@ -48,6 +50,7 @@ function showPage(page) {
     page.id === 'home' ? `${GAME.SITE.title} | Tier list, guides, tools` : `${page.label} | ${GAME.SITE.title}`;
   setMenu(false);
   if (page.id === 'character') characterTabs(page.character);
+  if (page.id === 'guide') guideScroll();
 }
 
 function go(route) {

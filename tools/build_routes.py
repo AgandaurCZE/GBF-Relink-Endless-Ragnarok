@@ -3,7 +3,7 @@
 GitHub Pages serves files, so /tierlist only works if tierlist/index.html exists. Every entry is a copy of
 src/index.html with a <base> that points back to the site root, so the shared css/, js/, assets/ and data/ resolve.
 
-Run after changing src/index.html, SITE.pages or a character's slug in data/game.json:
+Run after changing src/index.html, SITE.pages, a character's slug or a guide's id or blocks in data/game.json:
     python3 tools/build_routes.py            write the entries
     python3 tools/build_routes.py --check    only verify them (check_all.py runs this)
 """
@@ -25,6 +25,7 @@ def entries():
     # GitHub Pages answers any unknown address with 404.html, at any depth, so its base is the absolute site path.
     yield ROOT / 'routes' / '404.html', MARKER + shell.replace('<base href="./">', f'<base href="{SITE_PATH}">', 1)
     routes = {p['route'] for p in pages} | {f'characters/{c["slug"]}' for c in game['CHARACTERS'] if c.get('slug')}
+    routes |= {f'guides/{g["id"]}' for g in game['GUIDES'] if g.get('blocks')}
     for route in sorted(routes - {''}):
         if any(part in ('', '.', '..') for part in route.split('/')):
             raise ValueError(f'Invalid route: {route!r}')

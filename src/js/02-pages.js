@@ -1,4 +1,4 @@
-/* js/02-pages.js: Home, Tier List, Characters, Guides and Tools.
+/* js/02-pages.js: Home, Tier List, Characters and Tools (Guides: js/06-guides.js).
    Each page reads its content from data/game.json; none of the content lives in this file. */
 
 // ===== Home
@@ -40,14 +40,6 @@ function characterChip(c) {
   const route = characterRoute(c);
   return `<a class="card character shortcut" href="${esc(route)}" data-route="${esc(route)}">${img}<strong>${esc(c.name)}</strong></a>`;
 }
-
-// ===== Guides: GUIDES[] {id, title, summary}
-PAGES.guides = () => {
-  if (!GAME.GUIDES.length) return emptyState('Guides are coming soon.');
-  return GAME.GUIDES.map(
-    (g) => `<article class="card"><h2>${esc(g.title)}</h2><p>${esc(g.summary)}</p></article>`,
-  ).join('');
-};
 
 // ===== Tools: TOOLS[] {id, title, summary}
 PAGES.tools = () => {

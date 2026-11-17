@@ -58,36 +58,47 @@ for p in pages:
 
 # CHARACTERS, tier list, guides, tools
 names = unique(d['CHARACTERS'], 'name', 'CHARACTERS')
-BLOCKS = {'text': {'text'}, 'list': {'items'}, 'table': {'columns', 'rows'}, 'stats': {'items'}}
+BLOCKS = {'text': {'text'}, 'list': {'items'}, 'table': {'columns', 'rows'}, 'stats': {'items'}, 'note': {'text'}, 'image': {'src', 'alt'}}
+NAME = r'[a-z0-9]+(-[a-z0-9]+)*'
+
+
+def blocks(items, at):
+    for i, b in enumerate(items):
+        where = f'{at}.blocks[{i}]'
+        if b.get('type') not in BLOCKS:
+            bad(f'{where}: type {b.get("type")!r} is not one of {sorted(BLOCKS)}')
+        elif not BLOCKS[b['type']] <= set(b):
+            bad(f'{where}: a {b["type"]} block needs {sorted(BLOCKS[b["type"]])}')
+        elif b['type'] == 'table' and any(len(r) != len(b['columns']) for r in b['rows']):
+            bad(f'{where}: every table row needs {len(b["columns"])} cells, one per column')
+        elif b['type'] == 'note' and b.get('tone', 'tip') not in ('tip', 'warning'):
+            bad(f'{where}: tone must be "tip" or "warning"')
+        elif b['type'] == 'image' and (not str(b['src']).startswith('assets/') or not str(b['alt']).strip()):
+            bad(f'{where}: an image needs src in assets/ and an alt text describing it')
+
+
 slugs = set()
 for c in d['CHARACTERS']:
     where = f'CHARACTERS[{c.get("name")}]'
     slug = c.get('slug')
     if slug is not None:
-        if not re.fullmatch(r'[a-z0-9]+(-[a-z0-9]+)*', slug):
+        if not re.fullmatch(NAME, slug):
             bad(f'{where}: slug {slug!r} must be lowercase letters and digits with hyphens (katalina, sandalphon-alt)')
         if slug in slugs:
             bad(f'{where}: slug {slug!r} is used twice')
         slugs.add(slug)
     tab_ids = set()
     for t in c.get('tabs', []):
-        if t.get('id') in tab_ids or not re.fullmatch(r'[a-z0-9-]+', t.get('id', '')):
+        if t.get('id') in tab_ids or not re.fullmatch(NAME, t.get('id', '')):
             bad(f'{where}: tab id {t.get("id")!r} is missing, repeated or not lowercase-with-hyphens')
         tab_ids.add(t.get('id'))
-        for i, b in enumerate(t.get('blocks', [])):
-            at = f'{where}.tabs[{t.get("id")}].blocks[{i}]'
-            if b.get('type') not in BLOCKS:
-                bad(f'{at}: type {b.get("type")!r} is not one of {sorted(BLOCKS)}')
-            elif not BLOCKS[b['type']] <= set(b):
-                bad(f'{at}: a {b["type"]} block needs {sorted(BLOCKS[b["type"]])}')
-            elif b['type'] == 'table' and any(len(r) != len(b['columns']) for r in b['rows']):
-                bad(f'{at}: every table row needs {len(b["columns"])} cells, one per column')
-tiers = unique(d['TIER_LIST']['tiers'], 'name', 'TIER_LIST.tiers')
-for name, tier in d['TIER_LIST']['ratings'].items():
-    if name not in names:
-        bad(f'TIER_LIST.ratings: {name!r} is not in CHARACTERS')
-    if tier not in tiers:
-        bad(f'TIER_LIST.ratings[{name}]: tier {tier!r} is not in TIER_LIST.tiers')
+        blocks(t.get('blocks', []), f'{where}.tabs[{t.get("id")}]')
+for g in d['GUIDES']:
+    if not re.fullmatch(NAME, str(g.get('id', ''))):
+        bad(f'GUIDES[{g.get("id")}]: id must be lowercase letters and digits with hyphens (it is the address /guides/<id>)')
+    if g.get('updated') and not re.fullmatch(r'\d{4}-\d{2}-\d{2}', g['updated']):
+        bad(f'GUIDES[{g.get("id")}]: updated must be a date YYYY-MM-DD')
+    blocks(g.get('blocks', []), f'GUIDES[{g.get("id")}]')
 unique(d['GUIDES'], 'id', 'GUIDES')
 unique(d['TOOLS'], 'id', 'TOOLS')
 

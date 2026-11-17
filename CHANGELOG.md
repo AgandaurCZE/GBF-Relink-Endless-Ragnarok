@@ -2,6 +2,13 @@
 
 Every change, newest first: what changed from what into what, the date, the checks run and their result.
 
+## 17 Nov 2026: guide pages and two new blocks (Claude)
+- Guides with `blocks` get their own page at `/guides/<id>` (`src/js/06-guides.js`), with an "Updated" date and a contents list when three or more blocks have titles; block titles are linkable (`#section`). Search finds text inside guides.
+- New block types `note` (tip or warning box) and `image` (picture from `assets/` with alt text and caption). The block code moved into `src/js/04-blocks.js`, shared by characters and guides. Script files renumbered: 05-characters, 06-guides, 07-search.
+- `tools/validate_data.py`: guide ids, dates, the new blocks (shared check for characters and guides). `tools/check_site.py`: a sample guide on a phone (link only for guides with blocks, contents jump, every block type).
+- `?v=`: site.css 4, 02-pages 3, 04-blocks 1, 05-characters 1, 06-guides 1, 07-search 1, 09-startup 4.
+- Checks: `python3 tools/check_all.py`: ALL CHECKS PASSED.
+
 ## 17 Nov 2026: Test Notebook upgrade (Claude)
 - **Voice entry** (artifact capability `dictation`, Chrome/Edge or the desktop app): press "Speak" and say e.g. "Katalina, damage 12345, cooldown 12, note first hit, save". Text before the first field name fills the subject; each field name takes the words after it; "save" at the end adds the entry. Numbers like "12,345" are stored as 12345.
 - **Sortable columns** (click a heading), **Summary** per subject for the entries shown (lowest · average · highest of each number field), **Copy as CSV** for spreadsheets.

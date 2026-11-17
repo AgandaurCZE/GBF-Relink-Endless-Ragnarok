@@ -1,4 +1,4 @@
-/* js/05-search.js: the search box in the menu. Searches page names, characters (name, summary, tab text),
+/* js/07-search.js: the search box in the menu. Searches page names, characters (name, summary, tab text),
    guides, tools and the Steam news and patch notes (title and text); results replace the page until the box is cleared or a result is opened. */
 
 function searchItems() {
@@ -12,7 +12,13 @@ function searchItems() {
       text: `${c.summary || ''} ${text}`,
     });
   }
-  for (const g of GAME.GUIDES) items.push({ kind: 'Guide', title: g.title, route: 'guides', text: g.summary || '' });
+  for (const g of GAME.GUIDES)
+    items.push({
+      kind: 'Guide',
+      title: g.title,
+      route: g.blocks?.length ? guideRoute(g) : 'guides',
+      text: `${g.summary || ''} ${JSON.stringify(g.blocks || [])}`,
+    });
   for (const t of GAME.TOOLS) items.push({ kind: 'Tool', title: t.title, route: 'tools', text: t.summary || '' });
   const plain = (body) => String(body).replace(/\[[^\]]*\]/g, ' ');
   for (const p of NEWS.patches)

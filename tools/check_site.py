@@ -36,6 +36,10 @@ SAMPLE_CHARACTER = dict(name='Sample Hero', slug='sample-hero', summary='A sampl
                                                   dict(type='stats', title='Stats', items=[dict(label='HP', value='100')])]),
     dict(id='skills', label='Skills', blocks=[dict(type='table', title='Skills', columns=['Skill', 'Cooldown'], rows=[['Slash', '5 s']]),
                                               dict(type='list', items=['One', 'Two'])])])
+SAMPLE_GUIDE = dict(id='sample-guide', title='Sample Guide', summary='A sample guide.', updated='2026-01-01', blocks=[
+    dict(type='text', title='First part', text='Text.'), dict(type='note', title='Second part', text='A tip.'),
+    dict(type='note', tone='warning', text='A warning.'), dict(type='image', src='assets/ui/og-image.jpg', alt='Sample picture', caption='Caption'),
+    dict(type='text', title='Third part', text='More text.')])
 
 
 class Quiet(SimpleHTTPRequestHandler):
@@ -83,6 +87,7 @@ def main():
             dict(posts=[SAMPLE_POST], patches=[dict(SAMPLE_POST, id='2', title='Ver. 9.9.9 Update Information', version='9.9.9')])))
         game = json.loads((sample_dir / 'data' / 'game.json').read_text(encoding='utf-8'))
         game['CHARACTERS'] = [SAMPLE_CHARACTER]
+        game['GUIDES'] = [SAMPLE_GUIDE, dict(id='later', title='Later guide', summary='Not written yet.')]
         (sample_dir / 'data' / 'game.json').write_text(json.dumps(game))
         entry = (ROOT / 'src' / 'index.html').read_text(encoding='utf-8').replace('<base href="./">', '<base href="../../">', 1)
         (sample_dir / 'characters' / 'sample-hero').mkdir(parents=True)
@@ -154,6 +159,21 @@ def main():
                 if page.inner_text('#pageTitle') != 'Sample Hero':
                     errors.append('search: clearing the box did not bring back the page')
                 page.close()
+                # Guide page: the card opens it, the contents list jumps to a section, every block type draws
+                page = browser.new_page(viewport=VIEWPORTS['phone'])
+                visit(page, f'{base}/sample/{SUBPATH}/guides', errors, 'sample guide')
+                if page.locator('a.card').count() != 1:
+                    errors.append('sample guide: only a guide with blocks should link to its own page')
+                page.click('a.card')
+                if not page.url.endswith('/guides/sample-guide') or page.inner_text('#pageTitle') != 'Sample Guide':
+                    errors.append(f'sample guide: the card did not open the guide ({page.url})')
+                page.click('.contents a[data-anchor="third-part"]')
+                page.wait_for_timeout(600)
+                if not page.url.endswith('#third-part') or not page.locator('#third-part').is_visible():
+                    errors.append('sample guide: the contents link did not jump to its section')
+                if not (page.query_selector('.note-tip') and page.query_selector('.note-warning') and page.query_selector('figure img[alt="Sample picture"]')):
+                    errors.append('sample guide: a note or image block did not draw')
+                page.close()
                 # Character page: the card opens it, tabs switch and land in the address, a direct link opens a tab
                 page = browser.new_page(viewport=VIEWPORTS['desktop'])
                 visit(page, f'{base}/sample/{SUBPATH}/characters', errors, 'sample character')
@@ -181,7 +201,7 @@ def main():
     if errors:
         print('Browser check failed:\n' + '\n'.join(errors))
         return 1
-    print(f'Browser check OK: {len(pages)} pages on {len(VIEWPORTS)} screen sizes, navigation, the news renderer, a character page, search and 404.')
+    print(f'Browser check OK: {len(pages)} pages on {len(VIEWPORTS)} screen sizes, navigation, the news renderer, a character page, a guide, search and 404.')
     return 0
 
 

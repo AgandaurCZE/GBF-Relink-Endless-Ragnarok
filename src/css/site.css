@@ -413,3 +413,58 @@ th {
   margin-right: 6px;
   font-size: 13px;
 }
+
+/* ===== Note and image blocks, guides (js/04-blocks.js, js/06-guides.js) */
+.note {
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--sky);
+  background: var(--panel);
+}
+
+.note-warning {
+  border-left-color: var(--gold);
+}
+
+.note p:first-child {
+  margin-top: 0;
+}
+
+.note p:last-child {
+  margin-bottom: 0;
+}
+
+.figure {
+  margin: 0 0 18px;
+}
+
+.figure img {
+  display: block;
+  max-width: 100%;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+}
+
+.figure figcaption {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.guides {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+.contents ol {
+  margin: 6px 0 0;
+  padding-left: 20px;
+}
+
+.guide-body {
+  max-width: 780px;
+}
+
+.guide-body h3 {
+  scroll-margin-top: 70px;
+}
