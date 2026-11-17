@@ -2,6 +2,9 @@
 
 Every change, newest first: what changed from what into what, the date, the checks run and their result.
 
+## 17 Nov 2026: weekly health check (Claude)
+- Scheduled task "Relink guide weekly health check" (Mondays 9:57 Prague, first run 23 Nov 2026; runs without asking): checks, last workflow runs, live site, backups of the Test Notebook and Tier List Editor data into `docs/testkit/*-backup.json`, roster sync for the editor; a message to David only when something is wrong. Described in `docs/README.md`.
+
 ## 17 Nov 2026: Compare page (Claude)
 - New page **Compare** (`/compare`, menu group PLAY, `src/js/08-compare.js`): pick two or three characters; their `stats` blocks line up by block title and label, rows that differ are marked, the choice is kept in the address (`/compare#katalina,io`). Shows "coming soon" until two characters have stats.
 - `tools/check_site.py`: two sample characters (address picks them, one differing row marked, a repeated pick shown once, no dead links).
