@@ -29,8 +29,29 @@ PAGES.character = (page) => {
     ? `<div class="profile-tabs" role="tablist">${buttons}</div>${panels}`
     : emptyState('More coming soon.');
   return `<a class="back-link" href="characters" data-route="characters">← All characters</a>
-  <div class="profile-head">${img}<div>${summary}</div></div>${body}`;
+  <div class="profile-head">${img}<div>${summary}</div></div>${body}${mentionsHtml(c)}`;
 };
+
+// Official posts that name this character (or one of its `aliases`), newest first: patches, then news.
+function mentions(c) {
+  const names = [c.name, ...(c.aliases || [])].map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const re = new RegExp(`(^|[^\\p{L}\\p{N}])(${names.join('|')})(?![\\p{L}\\p{N}])`, 'iu');
+  return [...NEWS.patches, ...NEWS.posts].filter((p) => re.test(p.title) || re.test(p.body));
+}
+
+function mentionsHtml(c) {
+  const found = mentions(c);
+  if (!found.length) return '';
+  const items = found
+    .slice(0, 12)
+    .map((p) => {
+      const route = (p.version ? 'patch-notes#' : 'news#') + postAnchor(p);
+      const tag = p.version ? `<span class="badge">Ver. ${esc(p.version)}</span>` : '';
+      return `<li><a href="${esc(route)}" data-route="${esc(route)}"><span class="post-date">${formatDate(p.date)}</span>${tag}${esc(p.title)}</a></li>`;
+    })
+    .join('');
+  return `<section class="card mentions"><h2>In the official patch notes and news</h2><ul>${items}</ul></section>`;
+}
 
 function characterTabs(c) {
   const tabs = c.tabs || [];

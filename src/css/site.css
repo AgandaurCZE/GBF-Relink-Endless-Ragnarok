@@ -573,3 +573,32 @@ th {
     transition: none !important;
   }
 }
+
+/* ===== Patch notes and news that mention a character (js/05-characters.js) */
+.mentions {
+  margin-top: 24px;
+}
+
+.mentions ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mentions li {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.mentions li:last-child {
+  border-bottom: 0;
+}
+
+.mentions a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.mentions a:hover {
+  color: var(--sky);
+}

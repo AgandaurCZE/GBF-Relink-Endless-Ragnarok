@@ -2,6 +2,13 @@
 
 Every change, newest first: what changed from what into what, the date, the checks run and their result.
 
+## 17 Nov 2026: publishing steps updated; patch mentions on character pages (Claude)
+- `.github/workflows/deploy.yml`: `configure-pages` v5 → v6, `upload-pages-artifact` v4 → v5, `deploy-pages` v4 → v5 (the Node.js 24 versions; v5 of configure-pages showed a deprecation warning on every run).
+- Character pages end with "In the official patch notes and news": every Steam post that names the character (whole word, any case, also `aliases`), newest patches first, linking to the exact post. Only official posts are linked; nothing is copied into the guide data.
+- `tools/check_site.py`: the sample post now names the sample character, and its page must list both posts.
+- `?v=`: site.css 7, 05-characters 3.
+- Checks: `python3 tools/check_all.py`: ALL CHECKS PASSED.
+
 ## 17 Nov 2026: setup tool and broken-link check (Claude)
 - New `tools/scaffold.py`: `character "Name" [--slug] [--image] [--tabs "Overview,Skills"]` and `guide "Title" [--id] [--summary]` add an empty entry (no invented content), set `meta.updated` and regenerate addresses. Tried both, plus a duplicate (refused); test entries removed again.
 - Empty character tabs show "More coming soon" instead of nothing.

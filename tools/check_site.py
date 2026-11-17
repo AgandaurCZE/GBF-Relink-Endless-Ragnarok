@@ -29,7 +29,7 @@ VIEWPORTS = {'desktop': dict(width=1280, height=900), 'phone': dict(width=390, h
 VISIBLE_RULES = [(re.compile(r'\bDavid\b'), 'the owner\'s name'), (re.compile(r'\bTODO\b'), 'a TODO note'),
                  (re.compile(r'\bundefined\b|\bNaN\b|\[object Object\]'), 'a broken value')]
 SAMPLE_POST = dict(id='1', title='Sample announcement', date='2026-01-01', url='https://store.steampowered.com/news/app/881020',
-                   body='[h2]Heading[/h2]\n[b]Bold[/b] text [url=https://example.com]link[/url]\n[list][*]one[*]two[/list]\n'
+                   body='[h2]Heading[/h2]\nSample Hero was adjusted.\n[b]Bold[/b] text [url=https://example.com]link[/url]\n[list][*]one[*]two[/list]\n'
                         '[img]{STEAM_CLAN_IMAGE}/x.png[/img]<script>alert(1)</script>')
 SAMPLE_CHARACTER = dict(name='Sample Hero', slug='sample-hero', summary='A sample <b>character</b>.', tabs=[
     dict(id='overview', label='Overview', blocks=[dict(type='text', text='First paragraph.\n\nSecond <script>alert(1)</script>'),
@@ -233,6 +233,8 @@ def main():
                 if not page.url.endswith('/characters/sample-hero') or page.inner_text('#pageTitle') != 'Sample Hero':
                     errors.append(f'sample character: the card did not open the character page ({page.url})')
                 dead_links(page, 'sample character', errors)
+                if page.locator('.mentions li').count() != 2:
+                    errors.append('sample character: the patch note and news post that name the character are not listed')
                 page.click('.profile-tab[data-tab="skills"]')
                 if not page.url.endswith('#skills') or not page.is_visible('.profile-panel[data-tab="skills"] table'):
                     errors.append('sample character: the Skills tab did not open')
