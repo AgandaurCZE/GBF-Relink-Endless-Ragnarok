@@ -126,10 +126,11 @@ def js_syntax():
 
 def cache_numbers(base):
     """A changed css/js file needs a new ?v=, or returning visitors keep the old copy for a while."""
+    if run(['git', 'cat-file', '-e', f'{base}^{{commit}}']).returncode:
+        return step('cache numbers', 'not run', f'          git cannot read commit {base!r} here (shallow clone?)')
     old_html = run(['git', 'show', f'{base}:src/index.html'])
     if old_html.returncode:
-        return step('cache numbers', 'ok' if base == 'HEAD' else 'not run',
-                    f'          git cannot read src/index.html at {base!r}')
+        return step('cache numbers', 'ok')   # the site didn't exist at that commit: nothing to compare yet
     old = dict(re.findall(r'(?:href|src)="((?:css|js)/[^"?]+)\?v=([^"]*)"', old_html.stdout))
     bad = []
     for path, version in site_files():

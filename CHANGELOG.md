@@ -2,6 +2,10 @@
 
 Every change, newest first: what changed from what into what, the date, the checks run and their result.
 
+## 17 Nov 2026: cache-number check fixed for the first push (Claude)
+- The first publish run (`c2e49db`) passed every check but stopped at "cache numbers": it compares `?v=` values with the commit before the push, GitHub's starter commit `37e17d8`, which had no site yet, and reported that as "NOT RUN". Changed `cache_numbers()` in `tools/check_all.py`: a readable commit without `src/index.html` now counts as nothing to compare (ok); an unreadable commit is still "NOT RUN". A bug in the new check, not a loosening.
+- Checks: `python3 tools/check_all.py`: ALL CHECKS PASSED.
+
 ## 17 Nov 2026: repository foundation (Claude)
 David asked for the project's foundation, organised like the DragonSword: Awakening guide but not necessarily identical, with the JSON, AI, owner and picture areas kept apart. Starting point: GitHub's initial commit `37e17d8` (README only).
 
