@@ -28,7 +28,7 @@ PAGES.tierlist = () => {
     .join('');
 };
 
-// ===== Characters: CHARACTERS[] {name, image, element, role}
+// ===== Characters: CHARACTERS[] {name, slug, image, tabs} (each character's own page: js/04-characters.js)
 PAGES.characters = () => {
   if (!GAME.CHARACTERS.length) return emptyState('Characters are coming soon.');
   return `<div class="grid characters">${GAME.CHARACTERS.map(characterChip).join('')}</div>`;
@@ -36,7 +36,9 @@ PAGES.characters = () => {
 
 function characterChip(c) {
   const img = c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy">` : '';
-  return `<div class="card character">${img}<strong>${esc(c.name)}</strong></div>`;
+  if (!c.slug) return `<div class="card character">${img}<strong>${esc(c.name)}</strong></div>`;
+  const route = characterRoute(c);
+  return `<a class="card character shortcut" href="${esc(route)}" data-route="${esc(route)}">${img}<strong>${esc(c.name)}</strong></a>`;
 }
 
 // ===== Guides: GUIDES[] {id, title, summary}

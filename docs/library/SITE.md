@@ -11,6 +11,7 @@ Back to the library: [README.md](../README.md). Rules: [AGENTS.md](../../AGENTS.
 | `src/js/01-core.js` | Globals (`GAME`, `NEWS`, `PAGES`) and helpers (`$`, `esc`, `emptyState`, `formatDate`) |
 | `src/js/02-pages.js` | Home, Tier List, Characters, Guides, Tools |
 | `src/js/03-news.js` | News and Patch Notes; `steamText()` turns Steam BBCode into safe HTML |
+| `src/js/04-characters.js` | Each character's own page (`/characters/<slug>`), its tabs, and the block renderer (`blocksHtml`) |
 | `src/js/09-startup.js` | Loads the data, builds the menu from `SITE.pages`, routing (`pageForPath`, `go`, Back/Forward), the phone menu |
 
 3. `09-startup.js` loads `data/game.json` and `data/steam-news.json`, builds the menu, then calls `PAGES[page.id]()`, which returns the page's HTML. Menu clicks change the address with `history.pushState` instead of reloading.

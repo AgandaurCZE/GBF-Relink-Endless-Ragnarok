@@ -21,6 +21,8 @@ function pageForPath(pathname) {
     /\/+$/,
     '',
   );
+  const character = GAME.CHARACTERS.find((c) => c.slug && characterRoute(c) === route);
+  if (character) return { id: 'character', nav: 'characters', label: character.name, character };
   return GAME.SITE.pages.find((p) => p.route === route) || GAME.SITE.pages[0];
 }
 
@@ -36,13 +38,16 @@ function buildNav() {
 }
 
 function showPage(page) {
-  document.querySelectorAll('.nav-item').forEach((a) => a.classList.toggle('active', a.dataset.page === page.id));
+  document
+    .querySelectorAll('.nav-item')
+    .forEach((a) => a.classList.toggle('active', a.dataset.page === (page.nav || page.id)));
   $('pageTitle').textContent = page.id === 'home' ? GAME.SITE.title : page.label;
   $('pageMeta').textContent = GAME.meta.patch ? `Game version ${GAME.meta.patch}` : '';
-  $('pageBody').innerHTML = (PAGES[page.id] || (() => emptyState('Coming soon.')))();
+  $('pageBody').innerHTML = (PAGES[page.id] || (() => emptyState('Coming soon.')))(page);
   document.title =
     page.id === 'home' ? `${GAME.SITE.title} | Tier list, guides, tools` : `${page.label} | ${GAME.SITE.title}`;
   setMenu(false);
+  if (page.id === 'character') characterTabs(page.character);
 }
 
 function go(route) {

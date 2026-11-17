@@ -3,7 +3,8 @@
 Fails on: a console error or uncaught exception, a file that fails to load, a page showing the wrong title,
 in-site navigation that doesn't change the address, or visible text that must never be public (VISIBLE_RULES).
 The site is served under /GBF-Relink-Endless-Ragnarok/, the same sub-path GitHub Pages uses.
-News and Patch Notes are also drawn once with a sample Steam post, so the post renderer is tested before real posts arrive.
+News, Patch Notes and a character page are also drawn with sample data (a Steam post, a character with every block
+type), so those renderers are tested before real content arrives.
 
     python3 tools/check_site.py
 Exit codes: 0 = passed, 1 = failed, 2 = could not run (Playwright or a browser is missing).
@@ -30,6 +31,11 @@ VISIBLE_RULES = [(re.compile(r'\bDavid\b'), 'the owner\'s name'), (re.compile(r'
 SAMPLE_POST = dict(id='1', title='Sample announcement', date='2026-01-01', url='https://store.steampowered.com/news/app/881020',
                    body='[h2]Heading[/h2]\n[b]Bold[/b] text [url=https://example.com]link[/url]\n[list][*]one[*]two[/list]\n'
                         '[img]{STEAM_CLAN_IMAGE}/x.png[/img]<script>alert(1)</script>')
+SAMPLE_CHARACTER = dict(name='Sample Hero', slug='sample-hero', summary='A sample <b>character</b>.', tabs=[
+    dict(id='overview', label='Overview', blocks=[dict(type='text', text='First paragraph.\n\nSecond <script>alert(1)</script>'),
+                                                  dict(type='stats', title='Stats', items=[dict(label='HP', value='100')])]),
+    dict(id='skills', label='Skills', blocks=[dict(type='table', title='Skills', columns=['Skill', 'Cooldown'], rows=[['Slash', '5 s']]),
+                                              dict(type='list', items=['One', 'Two'])])])
 
 
 class Quiet(SimpleHTTPRequestHandler):
@@ -75,6 +81,12 @@ def main():
         build(sample_dir)
         (sample_dir / 'data' / 'steam-news.json').write_text(json.dumps(
             dict(posts=[SAMPLE_POST], patches=[dict(SAMPLE_POST, id='2', title='Ver. 9.9.9 Update Information', version='9.9.9')])))
+        game = json.loads((sample_dir / 'data' / 'game.json').read_text(encoding='utf-8'))
+        game['CHARACTERS'] = [SAMPLE_CHARACTER]
+        (sample_dir / 'data' / 'game.json').write_text(json.dumps(game))
+        entry = (ROOT / 'src' / 'index.html').read_text(encoding='utf-8').replace('<base href="./">', '<base href="../../">', 1)
+        (sample_dir / 'characters' / 'sample-hero').mkdir(parents=True)
+        (sample_dir / 'characters' / 'sample-hero' / 'index.html').write_text(entry, encoding='utf-8')
         server = ThreadingHTTPServer(('127.0.0.1', 0), functools.partial(Quiet, directory=tmp))
         threading.Thread(target=server.serve_forever, daemon=True).start()
         base = f'http://127.0.0.1:{server.server_port}'
@@ -117,13 +129,34 @@ def main():
                     if page.query_selector('.post-body script'):
                         errors.append(f'sample /{route}: a <script> from a post reached the page')
                     page.close()
+                # Character page: the card opens it, tabs switch and land in the address, a direct link opens a tab
+                page = browser.new_page(viewport=VIEWPORTS['desktop'])
+                visit(page, f'{base}/sample/{SUBPATH}/characters', errors, 'sample character')
+                page.click('.character')
+                if not page.url.endswith('/characters/sample-hero') or page.inner_text('#pageTitle') != 'Sample Hero':
+                    errors.append(f'sample character: the card did not open the character page ({page.url})')
+                page.click('.profile-tab[data-tab="skills"]')
+                if not page.url.endswith('#skills') or not page.is_visible('.profile-panel[data-tab="skills"] table'):
+                    errors.append('sample character: the Skills tab did not open')
+                if page.query_selector('.profile-panel script, .profile-head b'):
+                    errors.append('sample character: HTML from the data reached the page unescaped')
+                page.click('.back-link')
+                if page.inner_text('#pageTitle') != 'Characters':
+                    errors.append('sample character: "All characters" did not go back')
+                page.close()
+                for size, viewport in VIEWPORTS.items():
+                    page = browser.new_page(viewport=viewport)
+                    visit(page, f'{base}/sample/{SUBPATH}/characters/sample-hero#skills', errors, f'sample character {size}')
+                    if not page.is_visible('.profile-panel[data-tab="skills"] .stats, .profile-panel[data-tab="skills"] li'):
+                        errors.append(f'sample character {size}: a direct link to #skills did not open that tab')
+                    page.close()
                 browser.close()
         finally:
             server.shutdown()
     if errors:
         print('Browser check failed:\n' + '\n'.join(errors))
         return 1
-    print(f'Browser check OK: {len(pages)} pages on {len(VIEWPORTS)} screen sizes, navigation and the news renderer.')
+    print(f'Browser check OK: {len(pages)} pages on {len(VIEWPORTS)} screen sizes, navigation, the news renderer and a character page.')
     return 0
 
 

@@ -2,6 +2,12 @@
 
 Every change, newest first: what changed from what into what, the date, the checks run and their result.
 
+## 17 Nov 2026: character page template (Claude)
+- New `src/js/04-characters.js`: every character with a `slug` gets a page at `/characters/<slug>` with tabs built from four block types (text, list, table, stats); the open tab is kept in the address (`#skills`). Character cards on Characters and Tier List now link to it. Format in `docs/DATA_REFERENCE.md`.
+- `tools/build_routes.py` makes an entry page per character; `tools/validate_data.py` checks slugs, tab ids, block types and table rows; `tools/check_site.py` (new test) draws a sample character: card link, tab switch, direct `#skills` link on desktop and phone, back link, no unescaped HTML. Tried with tab switching broken: caught.
+- `?v=`: site.css 2, 02-pages.js 2, 04-characters.js 1, 09-startup.js 2.
+- Checks: `python3 tools/check_all.py`: ALL CHECKS PASSED.
+
 ## 17 Nov 2026: inbox picture tool (Claude)
 - New `tools/inbox_images.py`: `list` (pictures waiting in `inbox/`), `asset` (crop, resize, save as `.webp` in `assets/`, lossless unless `--lossy`, names checked, 5 MB limit), `archive` (move an original into `sources/` as `<name>-<date>`, tidy empty inbox folders). Tried on a sample picture. Mentioned in AGENTS.md (inbox row) and `inbox/README.md`.
 - Checks: `python3 tools/check_all.py`: ALL CHECKS PASSED.
