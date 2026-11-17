@@ -8,6 +8,10 @@ The GitHub workflow .github/workflows/steam-news.yml runs this twice an hour and
     python3 tools/steam_news.py                     fetch from Steam (needs internet)
     python3 tools/steam_news.py --input saved.json  replay a saved Steam API response (for testing)
 
+When Steam doesn't answer (network, timeout, 429, 5xx) it retries three times, then leaves the feed as it is and ends
+with a warning, not an error: the next run tries again. A changed or broken feed, or a feed suddenly much shorter
+than the one we have, still fails, so it shows up red on the Actions tab.
+
 Later, when the guide knows the characters, this is the place to read balance changes out of the update notes
 (the DragonSword guide does this in tools/apply_patch_skills.py).
 """
@@ -16,6 +20,9 @@ from datetime import datetime, timezone
 import json
 from pathlib import Path
 import re
+import sys
+import time
+from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode, urlsplit
 from urllib.request import urlopen
 
@@ -27,14 +34,32 @@ VERSION = re.compile(r'\bVer(?:sion)?\.?\s*(\d+\.\d+\.\d+)\b', re.I)
 SOURCES = {'steamstore-a.akamaihd.net', 'store.steampowered.com', 'steamcommunity.com', 'clan.akamai.steamstatic.com'}
 
 
+class SteamUnavailable(Exception):
+    """Steam did not answer (network, timeout, 429 or 5xx) even after retrying: try again at the next run."""
+
+
+def get_page(url):
+    for attempt in range(3):
+        try:
+            with urlopen(url, timeout=30) as response:
+                return json.load(response)['appnews']
+        except HTTPError as e:
+            if e.code != 429 and e.code < 500:
+                raise
+            error = e
+        except (URLError, TimeoutError, ConnectionError) as e:
+            error = e
+        time.sleep(10 * (attempt + 1))
+    raise SteamUnavailable(str(error))
+
+
 def fetch():
     posts, cursor = {}, None
     for _ in range(40):
         query = dict(appid=APP, feeds=CHANNEL, count=50, maxlength=0)
         if cursor is not None:
             query['enddate'] = cursor
-        with urlopen(f'{API}?{urlencode(query)}', timeout=30) as response:
-            result = json.load(response)['appnews']
+        result = get_page(f'{API}?{urlencode(query)}')
         if int(result['appid']) != APP:
             raise ValueError('Steam answered for a different app')
         page = result['newsitems']
@@ -80,8 +105,19 @@ def main():
     parser.add_argument('--input', type=Path, help='Replay a saved Steam API response')
     parser.add_argument('--output', type=Path, default=ROOT / 'data' / 'steam-news.json')
     options = parser.parse_args()
-    items = json.loads(options.input.read_text(encoding='utf-8'))['appnews']['newsitems'] if options.input else fetch()
+    try:
+        items = json.loads(options.input.read_text(encoding='utf-8'))['appnews']['newsitems'] if options.input else fetch()
+    except SteamUnavailable as e:
+        # A Steam outage is not our error: keep the current feed, show a warning on the run, and try at the next run.
+        print(f'::warning::Steam did not answer ({e}); the news feed was left as it is.')
+        sys.exit(0)
     feed = make_feed(items)
+    if options.output.exists():
+        old = json.loads(options.output.read_text(encoding='utf-8'))
+        before, after = len(old.get('posts', [])) + len(old.get('patches', [])), len(feed['posts']) + len(feed['patches'])
+        if after < before - 5:
+            raise ValueError(f'Steam returned {after} posts, {before - after} fewer than the {before} we have: not overwriting. '
+                             'Check the feed by hand; if posts were really removed, delete data/steam-news.json once and rerun.')
     temporary = options.output.with_suffix('.tmp')
     temporary.write_text(json.dumps(feed, ensure_ascii=False, separators=(',', ':')) + '\n', encoding='utf-8', newline='\n')
     temporary.replace(options.output)

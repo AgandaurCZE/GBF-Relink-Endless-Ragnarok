@@ -58,6 +58,6 @@ Also generated: `routes/404.html` (GitHub Pages shows it for any unknown address
 Published: `routes/`, `src/js` and `src/css` (as `/js`, `/css`), `assets/`, `data/`. Not published: `docs/`, `inbox/`, `sources/`, `tools/` and the notes (they're still visible on GitHub, because the repository is public).
 
 ## Steam news
-`.github/workflows/steam-news.yml` runs `tools/steam_news.py` at :23 and :53 every hour. It reads the official announcements of Granblue Fantasy: Relink on Steam (app 881020; Endless Ragnarok is an upgrade of that game on Steam, so its posts appear there), writes `data/steam-news.json`, commits a change to `main` and starts the publish run. Titles with a version ("Ver. 2.0.6 Update Information") go to Patch Notes.
+`.github/workflows/steam-news.yml` runs `tools/steam_news.py` at :23 and :53 every hour. A Steam outage ends in a warning (feed unchanged, retried next run); a broken feed, or one suddenly much shorter than ours, fails red. It reads the official announcements of Granblue Fantasy: Relink on Steam (app 881020; Endless Ragnarok is an upgrade of that game on Steam, so its posts appear there), writes `data/steam-news.json`, commits a change to `main` and starts the publish run. Titles with a version ("Ver. 2.0.6 Update Information") go to Patch Notes.
 
 Later, the guide can read balance changes out of the update notes and apply them to the character data automatically, the way the DragonSword guide's `tools/apply_patch_skills.py` does. That needs the character data first.

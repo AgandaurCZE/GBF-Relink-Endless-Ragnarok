@@ -9,6 +9,7 @@ The index of every note in the repository. A new chat (Claude, ChatGPT, Codex or
 | [`../AGENTS.md`](../AGENTS.md) | The rules, starting with the **golden rules**: run `python3 tools/check_all.py` before every commit, the site is published only when GitHub passes the same checks, never weaken a check. Then the main-only workflow, folders, data rules. Binding. |
 | [`library/WORKING_WITH_DAVID.md`](library/WORKING_WITH_DAVID.md) | How David likes to work, his permissions, mistakes to avoid |
 | [`library/STATUS.md`](library/STATUS.md) | **Where things stand right now**: current task, next steps, open questions |
+| [`library/GETTING_STARTED.md`](library/GETTING_STARTED.md) | For David: how a content session works, from `inbox/` to the live site |
 
 ## Reference
 

@@ -2,6 +2,11 @@
 
 Every change, newest first: what changed from what into what, the date, the checks run and their result.
 
+## 17 Nov 2026: steadier Steam refresh; getting-started note (Claude)
+- `tools/steam_news.py`: when Steam doesn't answer (network, timeout, 429, 5xx) it retries three times, then keeps the current feed and ends with a warning instead of a red run; the next run tries again. New guard: a feed suddenly more than 5 posts shorter than ours is refused (red), so a partial answer can't wipe the News pages. Both tried (simulated outage: three tries then "unavailable"; a 1-post feed against our 50: refused, file untouched).
+- New `docs/library/GETTING_STARTED.md` for David: the loop from `inbox/` and the notebook to the live site, what to decide first, how to install the app on each phone. Listed in `docs/README.md`.
+- Checks: `python3 tools/check_all.py`: ALL CHECKS PASSED.
+
 ## 17 Nov 2026: phone install check, accessibility check (Claude)
 - Checked the live site: manifest, all three icons and the offline worker load and take over. Added the iPhone home-screen tags (`apple-mobile-web-app-*`, name "Relink Guide") and a stable app `id`; how to install on each phone is in `docs/library/SITE.md`.
 - **New check:** `tools/check_site.py` runs axe-core (WCAG 2 A and AA, installed from npm for each run) on every page and the sample character, guide, tier list and Home, in dark and light mode. Skipped (and said so) only where npm is missing.
