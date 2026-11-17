@@ -1,0 +1,179 @@
+{
+ "data/game.json": {
+  "record": {
+   "opt": {},
+   "req": {
+    "CHARACTERS": {
+     "list": null
+    },
+    "GUIDES": {
+     "list": null
+    },
+    "SITE": {
+     "record": {
+      "opt": {},
+      "req": {
+       "pages": {
+        "list": {
+         "record": {
+          "opt": {},
+          "req": {
+           "group": {
+            "types": [
+             "string"
+            ]
+           },
+           "id": {
+            "types": [
+             "string"
+            ]
+           },
+           "label": {
+            "types": [
+             "string"
+            ]
+           },
+           "route": {
+            "types": [
+             "string"
+            ]
+           }
+          }
+         }
+        }
+       },
+       "title": {
+        "types": [
+         "string"
+        ]
+       }
+      }
+     }
+    },
+    "TIER_LIST": {
+     "record": {
+      "opt": {},
+      "req": {
+       "ratings": {
+        "map": null
+       },
+       "tiers": {
+        "list": null
+       }
+      }
+     }
+    },
+    "TOOLS": {
+     "list": null
+    },
+    "meta": {
+     "record": {
+      "opt": {},
+      "req": {
+       "game": {
+        "types": [
+         "string"
+        ]
+       },
+       "patch": {
+        "types": [
+         "string"
+        ]
+       },
+       "updated": {
+        "types": [
+         "string"
+        ]
+       }
+      }
+     }
+    },
+    "schemaVersion": {
+     "types": [
+      "number"
+     ]
+    }
+   }
+  }
+ },
+ "data/steam-news.json": {
+  "record": {
+   "opt": {},
+   "req": {
+    "patches": {
+     "list": {
+      "record": {
+       "opt": {},
+       "req": {
+        "body": {
+         "types": [
+          "string"
+         ]
+        },
+        "date": {
+         "types": [
+          "string"
+         ]
+        },
+        "id": {
+         "types": [
+          "string"
+         ]
+        },
+        "title": {
+         "types": [
+          "string"
+         ]
+        },
+        "url": {
+         "types": [
+          "string"
+         ]
+        },
+        "version": {
+         "types": [
+          "string"
+         ]
+        }
+       }
+      }
+     }
+    },
+    "posts": {
+     "list": {
+      "record": {
+       "opt": {},
+       "req": {
+        "body": {
+         "types": [
+          "string"
+         ]
+        },
+        "date": {
+         "types": [
+          "string"
+         ]
+        },
+        "id": {
+         "types": [
+          "string"
+         ]
+        },
+        "title": {
+         "types": [
+          "string"
+         ]
+        },
+        "url": {
+         "types": [
+          "string"
+         ]
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

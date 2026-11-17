@@ -1,0 +1,62 @@
+{
+ "schemaVersion": 1,
+ "meta": {
+  "game": "Granblue Fantasy: Relink - Endless Ragnarok",
+  "patch": "",
+  "updated": "2026-11-17"
+ },
+ "SITE": {
+  "title": "Granblue Fantasy: Relink - Endless Ragnarok",
+  "pages": [
+   {
+    "id": "home",
+    "route": "",
+    "label": "Home",
+    "group": ""
+   },
+   {
+    "id": "tierlist",
+    "route": "tierlist",
+    "label": "Tier List",
+    "group": "PLAY"
+   },
+   {
+    "id": "characters",
+    "route": "characters",
+    "label": "Characters",
+    "group": "PLAY"
+   },
+   {
+    "id": "guides",
+    "route": "guides",
+    "label": "Guides",
+    "group": "RESOURCES"
+   },
+   {
+    "id": "tools",
+    "route": "tools",
+    "label": "Tools",
+    "group": "RESOURCES"
+   },
+   {
+    "id": "news",
+    "route": "news",
+    "label": "News",
+    "group": "UPDATES"
+   },
+   {
+    "id": "patches",
+    "route": "patch-notes",
+    "label": "Patch Notes",
+    "group": "UPDATES"
+   }
+  ]
+ },
+ "CHARACTERS": [],
+ "TIER_LIST": {
+  "tiers": [],
+  "ratings": {}
+ },
+ "GUIDES": [],
+ "TOOLS": []
+}

@@ -1,0 +1,46 @@
+# Refresh the News and Patch Notes pages from the official Steam announcements, twice an hour.
+# A change is committed to main and published through "Check and publish" (deploy.yml), like any other commit.
+name: Refresh Steam news
+
+on:
+  schedule:
+    - cron: '23,53 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: steam-news
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Fetch official announcements
+        run: python3 tools/steam_news.py
+      - name: Save and publish changes
+        run: |
+          git add data/steam-news.json
+          if ! git diff --cached --quiet; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit -m 'Refresh official Steam announcements'
+            git pull --rebase --quiet origin main
+            git push origin HEAD:main
+          elif [ "$(git log -1 --format=%s)" != 'Refresh official Steam announcements' ]; then
+            exit 0
+          fi
+          # A push made with GITHUB_TOKEN does not start other workflows, so start the publish run here.
+          # This also recovers when an earlier run pushed but could not start it.
+          run=$(gh run list --workflow deploy.yml --commit "$(git rev-parse HEAD)" --limit 1 --json status,conclusion --jq '.[] | (.conclusion // "") + ":" + .status')
+          case "$run" in
+            success:completed|:queued|:in_progress|:waiting|:pending|:requested) ;;
+            *) gh workflow run deploy.yml --ref main ;;
+          esac

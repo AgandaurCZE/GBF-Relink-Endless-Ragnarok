@@ -1,0 +1,6 @@
+# Only the website JavaScript and CSS are formatted. HTML, data and notes keep their own agreed formats.
+/*
+!/src/
+/src/*
+!/src/js/
+!/src/css/

@@ -1,0 +1,8 @@
+# Every text file is stored and checked out with LF line endings, on every machine. Pictures and fonts are binary.
+* text=auto eol=lf
+*.webp binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.woff2 binary

@@ -1,0 +1,277 @@
+/* css/site.css: every style of the site. After editing: npx --yes prettier@3.9.10 --write src/js src/css,
+   then give this file a new ?v= in src/index.html. */
+
+:root {
+  --bg: #0b1424;
+  --panel: #13213a;
+  --panel-2: #1a2c4b;
+  --line: #27406a;
+  --text: #e6eefb;
+  --muted: #9fb2d3;
+  --sky: #4fb3ff;
+  --gold: #f2c45a;
+  --radius: 10px;
+  --sidebar: 230px;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font:
+    15px/1.55 system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+}
+
+a {
+  color: var(--sky);
+}
+
+/* ===== Layout: sidebar on the left, content on the right */
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: var(--sidebar);
+  overflow-y: auto;
+  padding: 18px 12px;
+  background: var(--panel);
+  border-right: 1px solid var(--line);
+}
+
+.content {
+  margin-left: var(--sidebar);
+  padding: 28px 36px 40px;
+  max-width: 1200px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.sidebar-brand {
+  padding: 0 8px 16px;
+}
+
+.sidebar-brand small {
+  display: block;
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.nav-group {
+  margin: 18px 8px 6px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.nav-item {
+  display: block;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.nav-item:hover {
+  background: var(--panel-2);
+}
+
+.nav-item.active {
+  background: var(--panel-2);
+  box-shadow: inset 3px 0 0 var(--gold);
+}
+
+.page-header h1 {
+  margin: 0 0 4px;
+  font-size: 26px;
+}
+
+.page-header p {
+  margin: 0 0 20px;
+  color: var(--muted);
+}
+
+footer {
+  margin-top: 48px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* ===== Shared pieces */
+.card {
+  display: block;
+  margin-bottom: 12px;
+  padding: 14px 16px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.card h2 {
+  margin: 0 0 6px;
+  font-size: 18px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.grid .card {
+  margin: 0;
+}
+
+.shortcut:hover {
+  border-color: var(--sky);
+}
+
+.empty {
+  padding: 28px;
+  background: var(--panel);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  color: var(--muted);
+  text-align: center;
+}
+
+.badge {
+  margin-right: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--gold);
+  color: #1b1405;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ===== Characters and tier list */
+.character {
+  text-align: center;
+}
+
+.character img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  margin-bottom: 8px;
+  border-radius: 8px;
+}
+
+.tier-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.tier-label {
+  display: grid;
+  place-items: center;
+  flex: 0 0 64px;
+  border-radius: var(--radius);
+  background: var(--tier, var(--panel-2));
+  color: #0b1424;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.tier-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex: 1;
+}
+
+.tier-items .character {
+  width: 110px;
+  margin: 0;
+}
+
+/* ===== News and patch notes */
+.post summary {
+  cursor: pointer;
+}
+
+.post-date {
+  margin-right: 10px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.post-body {
+  margin-top: 12px;
+  overflow-wrap: anywhere;
+}
+
+/* ===== Phones: the sidebar becomes a slide-in menu */
+.mobile-bar,
+.menu-backdrop {
+  display: none;
+}
+
+@media (max-width: 800px) {
+  .mobile-bar {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .mobile-bar button {
+    padding: 6px 12px;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    color: var(--text);
+    font: inherit;
+  }
+
+  .sidebar {
+    z-index: 5;
+    transform: translateX(-100%);
+    transition: transform 0.2s;
+  }
+
+  .sidebar.is-open {
+    transform: none;
+  }
+
+  .menu-backdrop:not([hidden]) {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 4;
+    background: rgb(0 0 0 / 0.5);
+    border: 0;
+  }
+
+  .content {
+    margin-left: 0;
+    padding: 20px 16px 32px;
+  }
+}
