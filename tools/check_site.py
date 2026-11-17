@@ -122,7 +122,8 @@ def main():
         (sample_dir / 'data' / 'steam-news.json').write_text(json.dumps(
             dict(posts=[SAMPLE_POST], patches=[dict(SAMPLE_POST, id='2', title='Ver. 9.9.9 Update Information', version='9.9.9')])))
         game = json.loads((sample_dir / 'data' / 'game.json').read_text(encoding='utf-8'))
-        game['CHARACTERS'] = [SAMPLE_CHARACTER]
+        game['CHARACTERS'] = [SAMPLE_CHARACTER, dict(name='Second Sample', slug='second-sample', tabs=[dict(id='overview', label='Overview', blocks=[
+            dict(type='stats', title='Stats', items=[dict(label='HP', value='100'), dict(label='Speed', value='Fast')])])])]
         game['TIER_LIST'] = dict(tiers=[dict(name='S', color='#f2c45a'), dict(name='A', color='#4fb3ff')], lists=[
             dict(id='overall', label='Overall', about='Sample list.', rows=dict(S=['Sample Hero'], A=[])),
             dict(id='solo', label='Solo', rows=dict(A=['Sample Hero'])), dict(id='empty', label='Empty', rows=dict())])
@@ -245,6 +246,20 @@ def main():
                 if not page.url.endswith('#overall') or not page.is_visible('.tier-list[data-list="overall"] .tier-label'):
                     errors.append('sample tier list: the Overall tab did not switch lists')
                 dead_links(page, 'sample tier list', errors)
+                page.close()
+                # Compare: two characters side by side, the choice kept in the address, differing rows marked
+                page = browser.new_page(viewport=VIEWPORTS['phone'])
+                visit(page, f'{base}/sample/{SUBPATH}/compare#second-sample,sample-hero', errors, 'sample compare')
+                heads = page.eval_on_selector_all('table.compare thead a', 'els => els.map((e) => e.textContent)')
+                if heads != ['Second Sample', 'Sample Hero']:
+                    errors.append(f'sample compare: /compare#second-sample,sample-hero should show those two; shows {heads}')
+                if page.locator('table.compare tr.differs').count() != 1:
+                    errors.append('sample compare: only the "Speed" row differs and should be marked')
+                page.select_option('select[data-slot="2"]', 'sample-hero')
+                page.select_option('select[data-slot="0"]', 'sample-hero')
+                if not page.url.endswith('#sample-hero'):
+                    errors.append(f'sample compare: picking the same character twice should show it once; address {page.url}')
+                dead_links(page, 'sample compare', errors)
                 page.close()
                 # Keyboard: "/" focuses search, Esc clears it; "Back to top" shows after scrolling (sample news is long enough)
                 page = browser.new_page(viewport=dict(width=1280, height=400))

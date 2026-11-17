@@ -18,6 +18,7 @@ Back to the library: [README.md](../README.md). Rules: [AGENTS.md](../../AGENTS.
 | `src/js/05-characters.js` | Each character's own page (`/characters/<slug>`) and its tabs |
 | `src/js/06-guides.js` | The Guides list and each guide's own page (`/guides/<id>`) with a contents list |
 | `src/js/07-search.js` | The search box: pages, characters (name, summary, tab text), guides, tools, news and patch notes (title and text) |
+| `src/js/08-compare.js` | Compare: two or three characters' `stats` blocks side by side (`/compare#a,b`) |
 | `src/js/09-startup.js` | Loads the data, builds the menu from `SITE.pages`, routing (`pageForPath`, `go`, Back/Forward), the phone menu |
 
 3. `09-startup.js` loads `data/game.json` and `data/steam-news.json`, builds the menu, then calls `PAGES[page.id]()`, which returns the page's HTML. Menu clicks change the address with `history.pushState` instead of reloading.

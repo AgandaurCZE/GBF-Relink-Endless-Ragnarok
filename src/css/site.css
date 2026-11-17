@@ -785,3 +785,38 @@ th {
     font-size: 11px;
   }
 }
+
+/* ===== Compare (js/08-compare.js) */
+.compare-pickers {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.picker select {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 8px 10px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  font: inherit;
+}
+
+.compare th[scope='row'] {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.compare-group th {
+  padding-top: 14px;
+  color: var(--gold-ink);
+}
+
+.compare tr.differs td {
+  background: var(--panel-2);
+  font-weight: 700;
+}

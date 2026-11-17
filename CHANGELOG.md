@@ -2,6 +2,12 @@
 
 Every change, newest first: what changed from what into what, the date, the checks run and their result.
 
+## 17 Nov 2026: Compare page (Claude)
+- New page **Compare** (`/compare`, menu group PLAY, `src/js/08-compare.js`): pick two or three characters; their `stats` blocks line up by block title and label, rows that differ are marked, the choice is kept in the address (`/compare#katalina,io`). Shows "coming soon" until two characters have stats.
+- `tools/check_site.py`: two sample characters (address picks them, one differing row marked, a repeated pick shown once, no dead links).
+- `?v=`: site.css 13, 08-compare 1, 09-startup 12.
+- Checks: `python3 tools/check_all.py`: ALL CHECKS PASSED.
+
 ## 17 Nov 2026: GitHub About box (Claude, in the browser)
 - Repository page, "About": website set to the GitHub Pages site; topics `granblue-fantasy-relink`, `tier-list`, `game-guide`, `fan-site`, `github-pages`; the empty "Releases" and "Packages" boxes hidden from the front page (Deployments kept). Description unchanged. All reversible under the ⚙ next to "About".
 

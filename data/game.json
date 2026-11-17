@@ -30,6 +30,13 @@
     "description": "Every character in Granblue Fantasy: Relink - Endless Ragnarok, each with its own guide page."
    },
    {
+    "id": "compare",
+    "route": "compare",
+    "label": "Compare",
+    "group": "PLAY",
+    "description": "Compare characters from Granblue Fantasy: Relink - Endless Ragnarok side by side."
+   },
+   {
     "id": "guides",
     "route": "guides",
     "label": "Guides",

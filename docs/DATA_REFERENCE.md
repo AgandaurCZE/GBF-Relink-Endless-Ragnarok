@@ -38,7 +38,7 @@ Checked by `tools/validate_data.py`: unique page ids and routes, home first, rou
 | `text` | `title?`, `text` | Paragraphs; a blank line (`\n\n`) starts a new one |
 | `list` | `title?`, `items[]` (text) | A bulleted list |
 | `table` | `title?`, `columns[]`, `rows[][]` (one cell per column) | A table that scrolls sideways on phones |
-| `stats` | `title?`, `items[]` `{label, value}` | Label and value pairs in a grid |
+| `stats` | `title?`, `items[]` `{label, value}` | Label and value pairs in a grid. Also what the Compare page compares: keep the same block title and labels across characters ("Stats" › "HP") so they line up. |
 | `note` | `title?`, `text`, `tone?` (`"tip"`, default, or `"warning"`) | A highlighted box (blue for tips, gold for warnings) |
 | `image` | `src` (in `assets/`), `alt` (what it shows), `caption?` | A full-width picture |
 

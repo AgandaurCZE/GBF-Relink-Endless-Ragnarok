@@ -55,6 +55,7 @@ function showPage(page) {
   if (page.id === 'guide') guideScroll();
   if (page.id === 'news' || page.id === 'patches') postsShown(page.id);
   if (page.id === 'tierlist') tierTabs();
+  if (page.id === 'compare') compareShown();
 }
 
 function go(route) {
