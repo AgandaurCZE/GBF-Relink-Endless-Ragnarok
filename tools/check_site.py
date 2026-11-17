@@ -149,6 +149,27 @@ def main():
                 if page.query_selector('.badge.new'):
                     errors.append('post link: "New" is still shown after the post was seen')
                 page.close()
+                # Keyboard: "/" focuses search, Esc clears it; "Back to top" shows after scrolling (sample news is long enough)
+                page = browser.new_page(viewport=dict(width=1280, height=400))
+                visit(page, f'{base}/{SUBPATH}/patch-notes', errors, 'keyboard')
+                page.keyboard.press('/')
+                if page.evaluate('document.activeElement.id') != 'search':
+                    errors.append('keyboard: "/" did not focus the search box')
+                page.keyboard.type('ver')
+                page.keyboard.press('Escape')
+                if page.input_value('#search') or page.inner_text('#pageTitle') != 'Patch Notes':
+                    errors.append('keyboard: Esc did not clear the search and bring back the page')
+                if page.evaluate('document.body.scrollHeight > 900'):
+                    page.evaluate('window.scrollTo(0, 900)')
+                    page.wait_for_timeout(300)
+                    if not page.is_visible('#toTop'):
+                        errors.append('back to top: the button did not appear after scrolling')
+                    else:
+                        page.click('#toTop')
+                        page.wait_for_timeout(800)
+                        if page.evaluate('window.scrollY') > 5:
+                            errors.append('back to top: the button did not scroll to the top')
+                page.close()
                 # Not-found page (GitHub Pages serves 404.html for any unknown address)
                 page = browser.new_page(viewport=VIEWPORTS['desktop'])
                 visit(page, f'{base}/{SUBPATH}/404.html', errors, 'not found')

@@ -2,6 +2,14 @@
 
 Every change, newest first: what changed from what into what, the date, the checks run and their result.
 
+## 17 Nov 2026: keyboard and reading comfort (Claude)
+- "/" jumps to the search box from anywhere (on phones it opens the menu), Esc clears the search and closes the menu.
+- A round "Back to top" button after scrolling down a screen; a "Skip to content" link for keyboard users; visible focus outlines; animations off for visitors who ask their system for less motion.
+- The footer shows "Guide updated <date>" from `meta.updated`: keep it current when the content changes.
+- `tools/check_site.py`: "/" and Esc, and "Back to top" on a long page.
+- `?v=`: site.css 6, 09-startup 6.
+- Checks: `python3 tools/check_all.py`: ALL CHECKS PASSED.
+
 ## 17 Nov 2026: patch note links and "New" marks (Claude)
 - Every post has its own address (`/patch-notes#v2-0-6`, `/news#post-<id>`) and a "Copy link" button; a link opens and scrolls to that post. Patch Notes opens the newest patch by default. Search results open the exact post.
 - Posts newer than the visitor's last look at News or Patch Notes show a blue "New" badge (remembered in their own browser; nothing on a first visit).
