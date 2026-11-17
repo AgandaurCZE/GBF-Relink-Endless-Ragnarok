@@ -42,6 +42,8 @@ td.num{font-variant-numeric:tabular-nums}
 .dialog .card{width:min(560px,100%);max-height:90vh;overflow:auto}
 .ask{background:var(--panel2);border:1px solid var(--gold);border-radius:8px;padding:8px 10px;margin-top:8px}
 .menu-btn{display:none}
+.sort{color:var(--muted);font-size:13px;padding:0;white-space:nowrap}
+.sort:hover{color:var(--text)}
 @media(max-width:760px){.app{grid-template-columns:1fr}aside{display:none}aside.open{display:block}.menu-btn{display:inline-block;margin-bottom:12px}main{padding:16px}}
 </style>
 </head>
@@ -65,10 +67,73 @@ td.num{font-variant-numeric:tabular-nums}
    tests/<id>   {name, about, subjectLabel, fields:[{name, unit}], createdAt}
    entries/<id> {testId, subject, values:{field: text}, note, date, createdAt}
    The repository keeps a copy of this page (docs/testkit/) and dated exports of the data. */
-const S = { db: null, tests: [], entries: [], current: null, filter: '', editing: null, canWrite: true, live: { tests: false, entries: false } };
+const S = { sort: { key: 'createdAt', dir: -1 }, dict: null, listening: false, heard: '', db: null, tests: [], entries: [], current: null, filter: '', editing: null, canWrite: true, live: { tests: false, entries: false } };
 const $ = (id) => document.getElementById(id);
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const today = () => new Date().toISOString().slice(0, 10);
+
+// A value counts as a number when it is one: "12,345" and "12 345" are 12345; "1.5" is 1.5.
+function num(v) { const t = String(v ?? '').replace(/[,\s]/g, ''); return /^-?\d+(\.\d+)?$/.test(t) ? parseFloat(t) : null; }
+function fmt(n) { return Number.isInteger(n) ? n.toLocaleString('en-GB') : n.toLocaleString('en-GB', { maximumFractionDigits: 2 }); }
+function sortValue(e, key) {
+  if (key === 'createdAt') return e.createdAt || 0;
+  if (key === 'date' || key === 'subject' || key === 'note') return String(e[key] || '').toLowerCase();
+  const v = (e.values || {})[key]; const n = num(v); return n !== null ? n : String(v ?? '').toLowerCase();
+}
+function csv(t, rows) {
+  const cell = (v) => { const x = String(v ?? ''); return /[",\n]/.test(x) ? '"' + x.replace(/"/g, '""') + '"' : x; };
+  const head = ['Date', t.subjectLabel || 'Subject', ...t.fields.map((f) => f.name + (f.unit ? ' (' + f.unit + ')' : '')), 'Note'];
+  return [head, ...rows.map((e) => [e.date, e.subject, ...t.fields.map((f) => (e.values || {})[f.name] ?? ''), e.note])].map((r) => r.map(cell).join(',')).join('\n');
+}
+function summary(t, rows) {
+  const numeric = t.fields.filter((f) => rows.some((e) => num((e.values || {})[f.name]) !== null));
+  if (!numeric.length || rows.length < 2) return '';
+  const groups = {};
+  rows.forEach((e) => (groups[e.subject || '—'] = groups[e.subject || '—'] || []).push(e));
+  const body = Object.keys(groups).sort().map((g) => `<tr><td>${esc(g)}</td><td class="num">${groups[g].length}</td>${numeric.map((f) => {
+    const xs = groups[g].map((e) => num((e.values || {})[f.name])).filter((x) => x !== null);
+    if (!xs.length) return '<td></td>';
+    const avg = xs.reduce((a, b) => a + b, 0) / xs.length;
+    return `<td class="num">${xs.length > 1 ? `${fmt(Math.min(...xs))} · <strong>${fmt(avg)}</strong> · ${fmt(Math.max(...xs))}` : fmt(xs[0])}</td>`;
+  }).join('')}</tr>`).join('');
+  return `<div class="card"><strong>Summary</strong> <span class="muted" style="font-size:13px">per ${esc((t.subjectLabel || 'subject').toLowerCase())}, for the entries shown: lowest · <strong>average</strong> · highest</span>
+   <div class="table-wrap" style="margin-top:8px"><table><thead><tr><th>${esc(t.subjectLabel || 'Subject')}</th><th>Entries</th>${numeric.map((f) => `<th>${esc(f.name)}${f.unit ? ' (' + esc(f.unit) + ')' : ''}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table></div></div>`;
+}
+
+// ===== Voice entry: "Katalina, damage 12345, cooldown 12, note first hit" fills the form; ending with "save" adds it.
+function fillFromSpeech(text) {
+  const t = S.tests.find((x) => x.id === S.current); const form = $('entryForm');
+  if (!t || !form) return;
+  const names = [{ key: 'subject', words: [(t.subjectLabel || 'subject').toLowerCase()] }, { key: 'note', words: ['note'] }, { key: 'date', words: [] },
+    ...t.fields.map((f, i) => ({ key: 'f' + i, words: [f.name.toLowerCase()] }))];
+  let said = text.trim().replace(/[.!?]+$/, '');
+  const save = /\b(save|add( it)?)$/i.test(said);
+  if (save) said = said.replace(/\b(save|add( it)?)$/i, '').trim();
+  const low = said.toLowerCase();
+  const hits = [];
+  for (const n of names) for (const w of n.words) { let i = -1; const re = new RegExp('(^|[\\s,;])' + w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'g'); let m;
+    while ((m = re.exec(low))) hits.push({ key: n.key, start: m.index + m[1].length, end: m.index + m[0].length }); }
+  hits.sort((a, b) => a.start - b.start);
+  const lead = (hits.length ? said.slice(0, hits[0].start) : said).replace(/^[\s,;:]+|[\s,;:]+$/g, '');
+  if (lead && !hits.some((h) => h.key === 'subject')) form.subject.value = lead;
+  hits.forEach((h, i) => {
+    let v = said.slice(h.end, i + 1 < hits.length ? hits[i + 1].start : said.length).replace(/^[\s,;:]+|[\s,;:]+$/g, '').replace(/^(is|was|of)\s+/i, '');
+    if (h.key.startsWith('f') && num(v) !== null) v = String(num(v));
+    if (v && form[h.key]) form[h.key].value = v;
+  });
+  if (save) form.requestSubmit();
+}
+async function toggleMic() {
+  if (!S.dict) return;
+  if (S.listening) { try { await S.dict.stop(); } catch {} return; }
+  S.heard = '';
+  S.dict.start().catch((e) => { S.listening = false; if (e && e.code === 'not_granted') { S.dict = null; status('Microphone not allowed: typing still works.', true); } micUi(); });
+}
+function micUi() {
+  const b = $('micBtn'); if (!b) return;
+  b.hidden = !S.dict; b.textContent = S.listening ? '■ Stop' : '🎤 Speak'; b.classList.toggle('primary', S.listening);
+  $('heard').textContent = S.listening ? S.heard || 'Listening… say e.g. "Katalina, damage 12345, cooldown 12, save"' : S.heard;
+}
 
 function status(text, warn) { const s = $('status'); s.textContent = text; s.className = 'status' + (warn ? ' warn' : ''); }
 
@@ -108,6 +173,8 @@ function render() {
   const all = S.entries.filter((e) => e.testId === t.id);
   const f = S.filter.toLowerCase();
   const rows = all.filter((e) => !f || `${e.subject} ${e.note} ${Object.values(e.values || {}).join(' ')}`.toLowerCase().includes(f));
+  rows.sort((a, b) => { const x = sortValue(a, S.sort.key), y = sortValue(b, S.sort.key); return (x < y ? -1 : x > y ? 1 : 0) * S.sort.dir || (b.createdAt || 0) - (a.createdAt || 0); });
+  const th = (key, text) => `<th><button class="link sort" data-sort="${esc(key)}">${text}${S.sort.key === key ? (S.sort.dir > 0 ? ' ▲' : ' ▼') : ''}</button></th>`;
   const subjects = [...new Set(all.map((e) => e.subject).filter(Boolean))].sort();
   const editing = S.entries.find((e) => e.id === S.editing);
   const v = editing ? editing.values || {} : {};
@@ -119,18 +186,20 @@ function render() {
      <div><label>Date</label><input name="date" type="date" value="${esc(editing ? editing.date : today())}"></div>
     </div>
     <div style="margin-top:10px"><label>Note</label><textarea name="note" rows="2">${esc(editing ? editing.note : '')}</textarea></div>
-    <div class="row" style="margin-top:10px"><button class="primary" type="submit">${editing ? 'Save changes' : 'Add entry'}</button><span class="muted" style="font-size:13px">Enter in any field saves.</span></div>
+    <div class="row" style="margin-top:10px"><button class="primary" type="submit">${editing ? 'Save changes' : 'Add entry'}</button><span class="muted" style="font-size:13px">Enter in any field saves.</span><button type="button" id="micBtn" hidden>🎤 Speak</button></div>
+    <div class="muted" id="heard" style="font-size:13px;margin-top:6px"></div>
     <datalist id="subjects">${subjects.map((s) => `<option value="${esc(s)}">`).join('')}</datalist>
    </form>` : '';
-  const table = rows.length ? `<div class="table-wrap"><table><thead><tr><th>Date</th><th>${esc(label)}</th>${t.fields.map((fl) => `<th>${esc(fl.name)}${fl.unit ? ' (' + esc(fl.unit) + ')' : ''}</th>`).join('')}<th>Note</th><th></th></tr></thead><tbody>${rows.map((e) => `<tr>
+  const table = rows.length ? `<div class="table-wrap"><table><thead><tr>${th('date', 'Date')}${th('subject', esc(label))}${t.fields.map((fl) => th(fl.name, esc(fl.name) + (fl.unit ? ' (' + esc(fl.unit) + ')' : ''))).join('')}${th('note', 'Note')}<th></th></tr></thead><tbody>${rows.map((e) => `<tr>
      <td>${esc(e.date)}</td><td>${esc(e.subject)}</td>${t.fields.map((fl) => `<td class="num">${esc((e.values || {})[fl.name] ?? '')}</td>`).join('')}<td>${esc(e.note)}</td>
      <td style="white-space:nowrap">${S.canWrite ? `<button class="link" data-edit="${esc(e.id)}">Edit</button><button class="link" data-del="${esc(e.id)}" style="color:var(--red)">Delete</button>` : ''}</td></tr>`).join('')}</tbody></table></div>`
     : `<div class="empty">${all.length ? 'No entries match the filter.' : 'No entries yet.'}</div>`;
   $('view').innerHTML = `<div class="head"><div><h2>${esc(t.name)}</h2>${t.about ? `<p class="muted" style="margin:4px 0 0">${esc(t.about)}</p>` : ''}</div>
-     <div class="row">${S.canWrite ? '<button data-act="edit-test">Edit test</button>' : ''}<button data-act="copy">Copy as JSON</button></div></div>
+     <div class="row">${S.canWrite ? '<button data-act="edit-test">Edit test</button>' : ''}<button data-act="csv">Copy as CSV</button><button data-act="copy">Copy as JSON</button></div></div>
     <div id="ask"></div><div style="height:12px"></div>${form}
     <div class="card"><div class="row" style="justify-content:space-between;margin-bottom:8px"><strong>${all.length} entr${all.length === 1 ? 'y' : 'ies'}</strong>
-     <input id="filter" placeholder="Filter by ${esc(label.toLowerCase())}, value or note" value="${esc(S.filter)}" style="max-width:280px"></div>${table}</div>`;
+     <input id="filter" placeholder="Filter by ${esc(label.toLowerCase())}, value or note" value="${esc(S.filter)}" style="max-width:280px"></div>${table}</div>${summary(t, rows)}`;
+  micUi();
 }
 
 function testDialog(t) {
@@ -159,6 +228,8 @@ function ask(where, text, yes) {
 document.addEventListener('click', async (ev) => {
   const b = ev.target.closest('button');
   if (!b) return;
+  if (b.dataset.sort) { const k = b.dataset.sort; S.sort = S.sort.key === k ? { key: k, dir: -S.sort.dir } : { key: k, dir: 1 }; render(); return; }
+  if (b.id === 'micBtn') { toggleMic(); return; }
   if (b.dataset.test) { location.hash = 'test-' + b.dataset.test; $('side').classList.remove('open'); return; }
   if (b.dataset.edit) { S.editing = b.dataset.edit; render(); $('entryForm').scrollIntoView({ behavior: 'smooth' }); return; }
   if (b.dataset.del) {
@@ -180,6 +251,11 @@ document.addEventListener('click', async (ev) => {
       await write(() => S.db.doc('tests/' + t.id).delete(), 'Test deleted.');
       location.hash = '';
     });
+  }
+  if (act === 'csv') {
+    const all = S.entries.filter((e) => e.testId === t.id);
+    try { await navigator.clipboard.writeText(csv(t, all)); status('Copied ' + all.length + ' entries as CSV: paste into a spreadsheet.'); }
+    catch { status('The browser blocked copying.', true); }
   }
   if (act === 'copy') {
     const data = { test: t, entries: S.entries.filter((e) => e.testId === t.id) };
@@ -241,6 +317,14 @@ window.addEventListener('hashchange', route);
   const db = await claude.use('db');
   if (!db) return status('Saving is not available in this view. Open the notebook on claude.ai.', true);
   S.db = db;
+  claude.use('dictation').then((d) => {
+    if (!d) return;
+    S.dict = d;
+    d.onPartial(({ text }) => { S.heard = text; micUi(); });
+    d.onFinal(({ text }) => { S.heard = text; fillFromSpeech(text); micUi(); });
+    d.onState(({ state }) => { S.listening = state === 'listening'; micUi(); });
+    micUi();
+  });
   const user = await claude.use('user');
   if (user && user.can) { try { const ok = await user.can('data.write'); if (ok === false) S.canWrite = false; } catch {} }
   const timer = setTimeout(() => status('The saved data can\'t be reached yet. Check your connection.', true), 10000);

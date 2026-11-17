@@ -2,6 +2,11 @@
 
 Every change, newest first: what changed from what into what, the date, the checks run and their result.
 
+## 17 Nov 2026: Test Notebook upgrade (Claude)
+- **Voice entry** (artifact capability `dictation`, Chrome/Edge or the desktop app): press "Speak" and say e.g. "Katalina, damage 12345, cooldown 12, note first hit, save". Text before the first field name fills the subject; each field name takes the words after it; "save" at the end adds the entry. Numbers like "12,345" are stored as 12345.
+- **Sortable columns** (click a heading), **Summary** per subject for the entries shown (lowest · average · highest of each number field), **Copy as CSV** for spreadsheets.
+- Tried with a stand-in database and microphone: three spoken entries, sorting, summary; no errors. Republished to the same artifact (entries kept).
+
 ## 17 Nov 2026: Test Notebook (Claude)
 - New artifact **Relink Test Notebook** (https://claude.ai/artifact/3TRUSLHHo3JA7FLkcD8EPX), page source in `docs/testkit/relink-test-notebook.html`. David creates tests (name, how it's measured, what an entry is about, fields with units) and adds, edits, filters and deletes entries; "Copy as JSON" per test. Data in the artifact's database (`tests/`, `entries/`), readable by whoever he shares it with, writable only by him (`write: owner`). Tried in a browser with a stand-in database: create test, add two entries, edit, filter, delete; no errors.
 - `docs/README.md`: new "Tools outside the repository" section with the backup routine (dated `docs/testkit/notebook-<date>.json` exports); STATUS lists the ready tools.
