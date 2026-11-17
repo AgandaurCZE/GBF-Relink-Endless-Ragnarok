@@ -2,6 +2,16 @@
 
 Every change, newest first: what changed from what into what, the date, the checks run and their result.
 
+## 17 Nov 2026: site extras (Claude)
+- **Page not found:** `routes/404.html` (generated) shows a "Page not found" page with the menu for any unknown address; unknown routes no longer fall back to Home silently.
+- **Share image:** `assets/ui/og-image.jpg` (1200×630, drawn from the site's colours and emblem, no game art) and the `og:image` / Twitter tags in `src/index.html`, so links posted on Discord, Reddit etc. show a picture.
+- **Search:** a search box in the menu (`src/js/05-search.js`) over pages, characters, guides, tools, and news and patch notes including their text.
+- **Sitemap:** `tools/build_site.py` writes `sitemap.xml` with every page at publishing.
+- Browser check: new tests for 404 and search (results by kind, no results, opening a result, clearing). The first run caught that search only looked at news titles; fixed by searching the text too.
+- Not done: Backup & Restore (the site has no visitor settings to back up yet).
+- `?v=`: site.css 3, 05-search.js 1, 09-startup.js 3.
+- Checks: `python3 tools/check_all.py`: ALL CHECKS PASSED.
+
 ## 17 Nov 2026: character page template (Claude)
 - New `src/js/04-characters.js`: every character with a `slug` gets a page at `/characters/<slug>` with tabs built from four block types (text, list, table, stats); the open tab is kept in the address (`#skills`). Character cards on Characters and Tier List now link to it. Format in `docs/DATA_REFERENCE.md`.
 - `tools/build_routes.py` makes an entry page per character; `tools/validate_data.py` checks slugs, tab ids, block types and table rows; `tools/check_site.py` (new test) draws a sample character: card link, tab switch, direct `#skills` link on desktop and phone, back link, no unescaped HTML. Tried with tab switching broken: caught.

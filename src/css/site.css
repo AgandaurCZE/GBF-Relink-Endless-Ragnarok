@@ -387,3 +387,29 @@ th {
     width: 120px;
   }
 }
+
+/* ===== Search (js/05-search.js) */
+.search {
+  width: 100%;
+  margin: 0 0 6px;
+  padding: 8px 10px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  font: inherit;
+}
+
+.search:focus {
+  outline: 2px solid var(--sky);
+  outline-offset: -1px;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.result .muted {
+  margin-right: 6px;
+  font-size: 13px;
+}

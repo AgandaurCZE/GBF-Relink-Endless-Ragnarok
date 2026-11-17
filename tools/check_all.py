@@ -112,7 +112,7 @@ def file_rules():
                 bad.append(f'{f}: assets/ holds only pictures and fonts the site shows (other files: data/, sources/ or docs/)')
             elif os.path.isfile(f) and os.path.getsize(f) > MAX_ASSET_MB * 1024 * 1024:
                 bad.append(f'{f}: larger than {MAX_ASSET_MB} MB; the site would load slowly. Convert it to .webp')
-        if '/' not in f and f.endswith('.html'):
+        if '/' not in f and f.endswith('.html'):  # routes/404.html is generated, so it lives in routes/
             bad.append(f'{f}: pages belong in src/index.html (edited) and routes/ (generated), not the top folder')
     step('file rules', 'FAIL' if bad else 'ok', indent('\n'.join(bad)))
 

@@ -12,6 +12,7 @@ Back to the library: [README.md](../README.md). Rules: [AGENTS.md](../../AGENTS.
 | `src/js/02-pages.js` | Home, Tier List, Characters, Guides, Tools |
 | `src/js/03-news.js` | News and Patch Notes; `steamText()` turns Steam BBCode into safe HTML |
 | `src/js/04-characters.js` | Each character's own page (`/characters/<slug>`), its tabs, and the block renderer (`blocksHtml`) |
+| `src/js/05-search.js` | The search box: pages, characters (name, summary, tab text), guides, tools, news and patch notes (title and text) |
 | `src/js/09-startup.js` | Loads the data, builds the menu from `SITE.pages`, routing (`pageForPath`, `go`, Back/Forward), the phone menu |
 
 3. `09-startup.js` loads `data/game.json` and `data/steam-news.json`, builds the menu, then calls `PAGES[page.id]()`, which returns the page's HTML. Menu clicks change the address with `history.pushState` instead of reloading.
@@ -41,6 +42,8 @@ Back to the library: [README.md](../README.md). Rules: [AGENTS.md](../../AGENTS.
 | formatting (prettier) | warning only: src/js or src/css not formatted | `npx --yes prettier@3.9.10 --write src/js src/css` |
 
 On every push to `main`, `.github/workflows/deploy.yml` runs the same script on GitHub, then assembles the site with `tools/build_site.py` and publishes it to GitHub Pages, **only if every check passed**. The run's summary page shows the check output.
+
+Also generated: `routes/404.html` (GitHub Pages shows it for any unknown address; its `<base>` is the absolute site path, `SITE_PATH` in `tools/build_routes.py`), and `sitemap.xml` at publishing (every page, for search engines; submit `https://agandaurcze.github.io/GBF-Relink-Endless-Ragnarok/sitemap.xml` in Google Search Console if wanted). The share image for links is `assets/ui/og-image.jpg` (1200×630, no game art).
 
 Published: `routes/`, `src/js` and `src/css` (as `/js`, `/css`), `assets/`, `data/`. Not published: `docs/`, `inbox/`, `sources/`, `tools/` and the notes (they're still visible on GitHub, because the repository is public).
 

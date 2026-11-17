@@ -129,6 +129,31 @@ def main():
                     if page.query_selector('.post-body script'):
                         errors.append(f'sample /{route}: a <script> from a post reached the page')
                     page.close()
+                # Not-found page (GitHub Pages serves 404.html for any unknown address)
+                page = browser.new_page(viewport=VIEWPORTS['desktop'])
+                visit(page, f'{base}/{SUBPATH}/404.html', errors, 'not found')
+                if page.inner_text('#pageTitle') != 'Page not found' or not page.query_selector('.nav-item'):
+                    errors.append('not found: 404.html does not show the "Page not found" page with the menu')
+                page.close()
+                # Search: finds the sample character and news, opens a result, clears the box
+                page = browser.new_page(viewport=VIEWPORTS['desktop'])
+                visit(page, f'{base}/sample/{SUBPATH}/', errors, 'search')
+                for query, expected in (('sample hero', {'Character'}), ('heading bold', {'News', 'Patch notes'})):
+                    page.fill('#search', query)
+                    kinds = page.eval_on_selector_all('.result .muted', 'els => els.map(e => e.textContent)')
+                    if not expected <= set(kinds):
+                        errors.append(f'search: {query!r} should find {sorted(expected)}; found {kinds}')
+                page.fill('#search', 'zzzz-nothing')
+                if 'Nothing found' not in page.inner_text('#pageBody'):
+                    errors.append('search: a search with no results does not say so')
+                page.fill('#search', 'sample hero')
+                page.click('.result')
+                if page.inner_text('#pageTitle') != 'Sample Hero' or page.input_value('#search'):
+                    errors.append('search: opening a result did not open the page and clear the box')
+                page.fill('#search', '')
+                if page.inner_text('#pageTitle') != 'Sample Hero':
+                    errors.append('search: clearing the box did not bring back the page')
+                page.close()
                 # Character page: the card opens it, tabs switch and land in the address, a direct link opens a tab
                 page = browser.new_page(viewport=VIEWPORTS['desktop'])
                 visit(page, f'{base}/sample/{SUBPATH}/characters', errors, 'sample character')
@@ -156,7 +181,7 @@ def main():
     if errors:
         print('Browser check failed:\n' + '\n'.join(errors))
         return 1
-    print(f'Browser check OK: {len(pages)} pages on {len(VIEWPORTS)} screen sizes, navigation, the news renderer and a character page.')
+    print(f'Browser check OK: {len(pages)} pages on {len(VIEWPORTS)} screen sizes, navigation, the news renderer, a character page, search and 404.')
     return 0
 
 

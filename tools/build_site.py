@@ -7,6 +7,7 @@ Usage: python3 tools/build_site.py --output /tmp/relink-site
 import argparse
 from pathlib import Path
 import shutil
+from build_routes import SITE_URL, entries
 
 ROOT = Path(__file__).resolve().parent.parent
 SKIP = shutil.ignore_patterns('.gitkeep', '__pycache__', '*.pyc')
@@ -25,6 +26,11 @@ def build(output):
     for name in ('assets', 'data'):
         shutil.copytree(ROOT / name, output / name, ignore=SKIP)
     (output / '.nojekyll').write_text('')
+    # Every page for search engines (the address to give Google Search Console: <site>/sitemap.xml)
+    routes = sorted(p.parent.relative_to(ROOT / 'routes').as_posix() for p, _ in entries() if p.name == 'index.html')
+    urls = [SITE_URL + ('' if r == '.' else r + '/') for r in routes]
+    (output / 'sitemap.xml').write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+                                        + ''.join(f' <url><loc>{u}</loc></url>\n' for u in urls) + '</urlset>\n', encoding='utf-8')
     print(f'Site assembled: {output}')
 
 
