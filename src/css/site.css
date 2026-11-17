@@ -468,3 +468,55 @@ th {
 .guide-body h3 {
   scroll-margin-top: 70px;
 }
+
+/* ===== Post links and "New" marks (js/03-news.js) */
+.badge.new {
+  background: var(--sky);
+}
+
+.post-links {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.copy-link {
+  padding: 2px 0;
+  background: none;
+  border: 0;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.copy-link:hover {
+  color: var(--text);
+}
+
+/* ===== Post links and "New" marks (js/03-news.js) */
+.badge.new {
+  background: var(--sky);
+}
+
+.post-links {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.copy-link {
+  padding: 2px 0;
+  background: none;
+  border: 0;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.copy-link:hover {
+  color: var(--text);
+}

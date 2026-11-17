@@ -22,8 +22,9 @@ function searchItems() {
   for (const t of GAME.TOOLS) items.push({ kind: 'Tool', title: t.title, route: 'tools', text: t.summary || '' });
   const plain = (body) => String(body).replace(/\[[^\]]*\]/g, ' ');
   for (const p of NEWS.patches)
-    items.push({ kind: 'Patch notes', title: p.title, route: 'patch-notes', text: plain(p.body) });
-  for (const p of NEWS.posts) items.push({ kind: 'News', title: p.title, route: 'news', text: plain(p.body) });
+    items.push({ kind: 'Patch notes', title: p.title, route: 'patch-notes#' + postAnchor(p), text: plain(p.body) });
+  for (const p of NEWS.posts)
+    items.push({ kind: 'News', title: p.title, route: 'news#' + postAnchor(p), text: plain(p.body) });
   return items;
 }
 

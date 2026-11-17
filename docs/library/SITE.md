@@ -10,7 +10,7 @@ Back to the library: [README.md](../README.md). Rules: [AGENTS.md](../../AGENTS.
 |---|---|
 | `src/js/01-core.js` | Globals (`GAME`, `NEWS`, `PAGES`) and helpers (`$`, `esc`, `emptyState`, `formatDate`) |
 | `src/js/02-pages.js` | Home, Tier List, Characters, Tools |
-| `src/js/03-news.js` | News and Patch Notes; `steamText()` turns Steam BBCode into safe HTML |
+| `src/js/03-news.js` | News and Patch Notes; `steamText()` turns Steam BBCode into safe HTML; post links (`/patch-notes#v2-0-6`, `/news#post-<id>`), "Copy link", the newest patch opened by default, "New" marks since the visitor's last look (kept in their browser) |
 | `src/js/04-blocks.js` | The content blocks (`blocksHtml`) shared by character tabs and guides |
 | `src/js/05-characters.js` | Each character's own page (`/characters/<slug>`) and its tabs |
 | `src/js/06-guides.js` | The Guides list and each guide's own page (`/guides/<id>`) with a contents list |

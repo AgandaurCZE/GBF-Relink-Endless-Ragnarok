@@ -2,6 +2,13 @@
 
 Every change, newest first: what changed from what into what, the date, the checks run and their result.
 
+## 17 Nov 2026: patch note links and "New" marks (Claude)
+- Every post has its own address (`/patch-notes#v2-0-6`, `/news#post-<id>`) and a "Copy link" button; a link opens and scrolls to that post. Patch Notes opens the newest patch by default. Search results open the exact post.
+- Posts newer than the visitor's last look at News or Patch Notes show a blue "New" badge (remembered in their own browser; nothing on a first visit).
+- `tools/check_site.py`: a post link opens its post; "New" shows for an unseen post and disappears once seen.
+- `?v=`: site.css 5, 03-news 3, 07-search 2, 09-startup 5.
+- Checks: `python3 tools/check_all.py`: ALL CHECKS PASSED.
+
 ## 17 Nov 2026: guide pages and two new blocks (Claude)
 - Guides with `blocks` get their own page at `/guides/<id>` (`src/js/06-guides.js`), with an "Updated" date and a contents list when three or more blocks have titles; block titles are linkable (`#section`). Search finds text inside guides.
 - New block types `note` (tip or warning box) and `image` (picture from `assets/` with alt text and caption). The block code moved into `src/js/04-blocks.js`, shared by characters and guides. Script files renumbered: 05-characters, 06-guides, 07-search.

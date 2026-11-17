@@ -51,13 +51,14 @@ function showPage(page) {
   setMenu(false);
   if (page.id === 'character') characterTabs(page.character);
   if (page.id === 'guide') guideScroll();
+  if (page.id === 'news' || page.id === 'patches') postsShown(page.id);
 }
 
 function go(route) {
   history.pushState(null, '', APP_ROOT + route);
   $('search').value = '';
-  showPage(pageForPath(location.pathname));
   window.scrollTo(0, 0);
+  showPage(pageForPath(location.pathname));
 }
 
 function setMenu(open) {

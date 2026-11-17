@@ -134,6 +134,21 @@ def main():
                     if page.query_selector('.post-body script'):
                         errors.append(f'sample /{route}: a <script> from a post reached the page')
                     page.close()
+                # Post links and "New" marks: a link opens its post; posts newer than the last visit are marked
+                page = browser.new_page(viewport=VIEWPORTS['desktop'])
+                visit(page, f'{base}/sample/{SUBPATH}/patch-notes#v9-9-9', errors, 'post link')
+                if not page.eval_on_selector('#v9-9-9', 'e => e.open'):
+                    errors.append('post link: /patch-notes#v9-9-9 did not open that patch')
+                page.evaluate("localStorage.setItem('seen-news', '2000-01-01')")
+                page.goto(f'{base}/sample/{SUBPATH}/news', wait_until='networkidle')
+                page.wait_for_selector('.post')
+                if not page.query_selector('.badge.new'):
+                    errors.append('post link: a post newer than the last visit is not marked "New"')
+                page.reload(wait_until='networkidle')
+                page.wait_for_selector('.post')
+                if page.query_selector('.badge.new'):
+                    errors.append('post link: "New" is still shown after the post was seen')
+                page.close()
                 # Not-found page (GitHub Pages serves 404.html for any unknown address)
                 page = browser.new_page(viewport=VIEWPORTS['desktop'])
                 visit(page, f'{base}/{SUBPATH}/404.html', errors, 'not found')
