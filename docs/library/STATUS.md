@@ -7,10 +7,11 @@ Back to the library: [README.md](../README.md).
 - **Next:** David starts the game and sends the first material (screenshots, notes) through `inbox/`. The first characters define the shape of `CHARACTERS` (see [DATA_REFERENCE.md](../DATA_REFERENCE.md)).
 
 ## Tools ready · 17 Nov 2026
-- **Test Notebook** for measurements while playing: https://claude.ai/artifact/3TRUSLHHo3JA7FLkcD8EPX (details in [docs/README.md](../README.md)).
-- **Character pages** (`/characters/<slug>`, tabs from blocks): waiting for the first character.
-- **`tools/inbox_images.py`** for screenshots from `inbox/`.
-- Search, 404 page, share image and sitemap on the site.
+- **Test Notebook** for measurements while playing, with voice entry, sorting, per-subject summary and CSV/JSON copy: https://claude.ai/artifact/3TRUSLHHo3JA7FLkcD8EPX (details in [docs/README.md](../README.md)).
+- **Character pages** (`/characters/<slug>`, tabs) and **guide pages** (`/guides/<id>`, contents list), both built from blocks (text, list, table, stats, note, image): waiting for content.
+- **`tools/scaffold.py`** adds an empty character or guide; **`tools/inbox_images.py`** turns screenshots from `inbox/` into site pictures.
+- Site: search (`/` key), 404 page, share image, sitemap, post links and "New" marks on News/Patch Notes, back to top, skip link.
+- The checks cover all of it, including broken in-site links.
 
 ## Open questions for David
 - **Which pages matter first** (tier list, character builds, sigils, weapons, quests, a damage calculator …), so `SITE.pages` and the data grow in that order.
