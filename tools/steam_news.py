@@ -49,8 +49,11 @@ def fetch():
 
 
 def make_feed(items):
+    """One patch per version. When several posts name the same version ("Important Notice (Ver. 2.0.3)" and
+    "Ver. 2.0.3 Update Information"), the one whose title says "Update" is the patch note; the rest are news."""
     news, patches, versions = [], [], set()
-    for item in sorted(items, key=lambda x: (x['date'], str(x['gid'])), reverse=True):
+    is_update = lambda x: bool(re.search(r'\bupdate\b', x['title'], re.I))
+    for item in sorted(items, key=lambda x: (is_update(x), x['date'], str(x['gid'])), reverse=True):
         if int(item['appid']) != APP or item.get('feedname') != CHANNEL:
             continue
         ident, title, body = str(item['gid']), item['title'].strip(), item['contents'].strip()
@@ -68,7 +71,8 @@ def make_feed(items):
             news.append(post)
     if not news and not patches:
         raise ValueError('Steam returned no announcements')
-    return dict(posts=news, patches=patches)
+    newest = lambda x: (x['date'], int(x['id']))
+    return dict(posts=sorted(news, key=newest, reverse=True), patches=sorted(patches, key=newest, reverse=True))
 
 
 def main():
