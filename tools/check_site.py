@@ -173,6 +173,38 @@ def main():
                         errors.append(f'sample home: {what} missing from Home')
                 dead_links(page, 'sample home', errors)
                 page.close()
+                # Light / dark: the switch changes the colours and is remembered after a reload
+                page = browser.new_page(viewport=VIEWPORTS['desktop'], color_scheme='dark')
+                visit(page, f'{base}/{SUBPATH}/', errors, 'theme')
+                background = "getComputedStyle(document.body).backgroundColor"
+                dark = page.evaluate(background)
+                page.click('#themeBtn')
+                light = page.evaluate(background)
+                page.reload(wait_until='networkidle')
+                if dark == light or page.evaluate(background) != light or page.evaluate('document.documentElement.dataset.theme') != 'light':
+                    errors.append('theme: the light/dark switch did not change the colours or was not remembered')
+                page.close()
+                # Installable app: the worker takes over; offline, an opened page and a never-opened page still work
+                context = browser.new_context(viewport=VIEWPORTS['desktop'])
+                page = context.new_page()
+                visit(page, f'{base}/{SUBPATH}/', errors, 'offline')
+                if not page.evaluate("fetch('manifest.webmanifest').then((r) => r.ok)"):
+                    errors.append('offline: manifest.webmanifest is not served at the site root')
+                ready = "Promise.race([navigator.serviceWorker.ready.then(() => true), new Promise((r) => setTimeout(() => r(false), 8000))])"
+                if not page.evaluate(ready):
+                    errors.append('offline: the offline worker (sw.js) did not start')
+                page.reload(wait_until='networkidle')
+                visit(page, f'{base}/{SUBPATH}/characters', errors, 'offline')
+                context.set_offline(True)
+                for route, title in (('characters', 'Characters'), ('tools', 'Tools')):
+                    try:
+                        page.goto(f'{base}/{SUBPATH}/{route}', wait_until='load')
+                        page.wait_for_function("!/Loading/.test(document.querySelector('#pageBody').textContent)", timeout=5000)
+                        if page.inner_text('#pageTitle') != title:
+                            errors.append(f'offline: /{route} shows {page.inner_text("#pageTitle")!r} instead of {title!r}')
+                    except Exception as e:
+                        errors.append(f'offline: /{route} did not open without a connection ({str(e).splitlines()[0]})')
+                context.close()
                 # Keyboard: "/" focuses search, Esc clears it; "Back to top" shows after scrolling (sample news is long enough)
                 page = browser.new_page(viewport=dict(width=1280, height=400))
                 visit(page, f'{base}/{SUBPATH}/patch-notes', errors, 'keyboard')

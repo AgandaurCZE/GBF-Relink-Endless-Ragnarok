@@ -2,6 +2,14 @@
 
 Every change, newest first: what changed from what into what, the date, the checks run and their result.
 
+## 17 Nov 2026: installable app, offline reading, light mode (Claude)
+- **Installable app:** `src/manifest.webmanifest` and app icons (`assets/ui/icon-*.png`, drawn from the site emblem), published at the site root by `tools/build_site.py`; an "Install app" button appears in the menu where the browser offers installing.
+- **Offline reading:** `src/sw.js` keeps the last copy of pages and data (always fetched fresh when online) and css/js/pictures; offline, any page opens, even one never visited (via `404.html`).
+- **Light mode:** follows the system setting; a "Light mode / Dark mode" button in the menu switches and remembers the choice (set before the page draws, so no flash).
+- Checks: `tools/check_all.py` also checks `src/sw.js` syntax and that the manifest's icons exist; `tools/check_site.py` tests the light/dark switch (colours change and are remembered) and offline use (an opened and a never-opened page). Tried with the worker switched off: caught.
+- `?v=`: site.css 9, 09-startup 9.
+- Checks: `python3 tools/check_all.py`: ALL CHECKS PASSED.
+
 ## 17 Nov 2026: home dashboard (Claude)
 - Home is now a dashboard: a banner (with the game version when `meta.patch` is set), the latest patch (with "New" when unseen), the three newest news posts, "Recently updated" guides and characters (by `updated`), character portraits, and the page shortcuts. Empty sections stay hidden.
 - Characters can have `updated` (date); `tools/scaffold.py` sets it, `tools/validate_data.py` checks the format.

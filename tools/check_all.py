@@ -89,6 +89,13 @@ def file_rules():
         except ValueError as e:
             bad.append(f'{f}: not valid JSON: {e}')
     try:
+        manifest = json.load(open('src/manifest.webmanifest', encoding='utf-8'))
+        for icon in manifest.get('icons', []):
+            if not os.path.isfile(icon['src']):
+                bad.append(f'src/manifest.webmanifest: icon {icon["src"]} does not exist')
+    except (OSError, ValueError) as e:
+        bad.append(f'src/manifest.webmanifest: missing or not valid JSON: {e}')
+    try:
         json.load(open('data/steam-news.json', encoding='utf-8'))
     except ValueError as e:
         bad.append(f'data/steam-news.json: not valid JSON: {e}')
@@ -120,7 +127,7 @@ def file_rules():
 def js_syntax():
     if not shutil.which('node'):
         return step('JS syntax', 'not run', '          node is not installed')
-    bad = [r.stderr.strip() for r in (run(['node', '--check', f]) for f in sorted(glob.glob('src/js/*.js'))) if r.returncode]
+    bad = [r.stderr.strip() for r in (run(['node', '--check', f]) for f in sorted(glob.glob('src/js/*.js')) + ['src/sw.js']) if r.returncode]
     step('JS syntax', 'FAIL' if bad else 'ok', indent('\n'.join(bad)))
 
 

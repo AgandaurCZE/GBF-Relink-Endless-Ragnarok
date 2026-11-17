@@ -26,6 +26,9 @@ Back to the library: [README.md](../README.md). Rules: [AGENTS.md](../../AGENTS.
 2. Write `PAGES.<id> = () => '...html...'` in the matching `src/js/` file (or a new numbered file, added to `src/index.html`).
 3. `python3 tools/build_routes.py`, prettier, new `?v=`, `python3 tools/check_all.py`.
 
+## Installable app and offline
+`src/manifest.webmanifest` (name, colours, icons) and `src/sw.js` (the offline worker) are published at the site root. The worker fetches pages and data fresh when online and keeps a copy for offline; css, js and pictures come from its cache and refresh in the background (their `?v=` changes when they do). When changing how `sw.js` caches, change its `CACHE` name so visitors' old caches are cleared.
+
 ## Adding content quickly
 `python3 tools/scaffold.py character "Name" --tabs "Overview,Skills,Build"` or `python3 tools/scaffold.py guide "Title" --summary "…"` adds an empty entry to `data/game.json` (name and address only, nothing invented), sets `meta.updated` to today and regenerates the page addresses. Empty tabs show "More coming soon"; a guide without blocks is listed as "Coming soon".
 

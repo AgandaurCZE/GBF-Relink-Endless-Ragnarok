@@ -686,3 +686,55 @@ th {
   padding: 8px;
   font-size: 13px;
 }
+
+/* ===== Light mode: follows the system unless the visitor picks one (js/09-startup.js remembers it) */
+:root[data-theme='light'] {
+  --bg: #f3f6fb;
+  --panel: #ffffff;
+  --panel-2: #e7eef9;
+  --line: #cfdbee;
+  --text: #13213a;
+  --muted: #586a89;
+  --sky: #1673c9;
+  --gold: #c08a12;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) {
+    --bg: #f3f6fb;
+    --panel: #ffffff;
+    --panel-2: #e7eef9;
+    --line: #cfdbee;
+    --text: #13213a;
+    --muted: #586a89;
+    --sky: #1673c9;
+    --gold: #c08a12;
+    color-scheme: light;
+  }
+}
+
+.sidebar-tools {
+  display: grid;
+  gap: 6px;
+  margin-top: 20px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.tool-btn {
+  padding: 7px 10px;
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tool-btn:hover {
+  color: var(--text);
+  border-color: var(--sky);
+}

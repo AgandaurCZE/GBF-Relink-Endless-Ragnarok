@@ -1,0 +1,15 @@
+{
+ "name": "Granblue Fantasy: Relink - Endless Ragnarok guide",
+ "short_name": "Relink Guide",
+ "description": "Fan-made guide to Granblue Fantasy: Relink - Endless Ragnarok: tier list, guides and tools.",
+ "start_url": "./",
+ "scope": "./",
+ "display": "standalone",
+ "background_color": "#0b1424",
+ "theme_color": "#0b1424",
+ "icons": [
+  {"src": "assets/ui/icon-192.png", "sizes": "192x192", "type": "image/png"},
+  {"src": "assets/ui/icon-512.png", "sizes": "512x512", "type": "image/png"},
+  {"src": "assets/ui/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+ ]
+}

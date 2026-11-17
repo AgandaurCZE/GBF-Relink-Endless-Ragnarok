@@ -96,6 +96,41 @@ document.addEventListener('keydown', (event) => {
   }
 });
 
+// Light / dark: follows the system until the visitor picks one; the choice is remembered in this browser.
+const currentTheme = () =>
+  document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+function themeLabel() {
+  $('themeBtn').textContent = currentTheme() === 'light' ? '☾ Dark mode' : '☀ Light mode';
+  document.querySelector('meta[name="theme-color"]').content = currentTheme() === 'light' ? '#f3f6fb' : '#0b1424';
+}
+$('themeBtn').addEventListener('click', () => {
+  const next = currentTheme() === 'light' ? 'dark' : 'light';
+  document.documentElement.dataset.theme = next;
+  try {
+    localStorage.setItem('theme', next);
+  } catch {}
+  themeLabel();
+});
+themeLabel();
+
+// Installable app (sw.js, manifest.webmanifest): offline reading of pages already opened, and an "Install app"
+// button where the browser offers installing.
+if ('serviceWorker' in navigator)
+  navigator.serviceWorker.register(APP_ROOT + 'sw.js', { scope: APP_ROOT }).catch(() => {});
+let installPrompt = null;
+window.addEventListener('beforeinstallprompt', (event) => {
+  event.preventDefault();
+  installPrompt = event;
+  $('installBtn').hidden = false;
+});
+$('installBtn').addEventListener('click', async () => {
+  if (!installPrompt) return;
+  installPrompt.prompt();
+  await installPrompt.userChoice.catch(() => {});
+  installPrompt = null;
+  $('installBtn').hidden = true;
+});
+
 // "Back to top" appears once the page is scrolled down a screen.
 window.addEventListener(
   'scroll',

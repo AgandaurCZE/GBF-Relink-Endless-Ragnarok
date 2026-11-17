@@ -1,6 +1,7 @@
 """Assemble the publishable site into an empty folder, exactly as GitHub Pages will serve it.
 
-Published: routes/ (the pages), src/js and src/css (as /js and /css), assets/ and data/.
+Published: routes/ (the pages), src/js and src/css (as /js and /css), src/manifest.webmanifest and src/sw.js
+(the installable app, at the root), assets/ and data/.
 Not published: docs/, inbox/, sources/, tools/ and the Markdown notes (they stay in the repository only).
 Usage: python3 tools/build_site.py --output /tmp/relink-site
 """
@@ -25,6 +26,8 @@ def build(output):
         shutil.copytree(ROOT / 'src' / name, output / name, ignore=SKIP)
     for name in ('assets', 'data'):
         shutil.copytree(ROOT / name, output / name, ignore=SKIP)
+    for name in ('manifest.webmanifest', 'sw.js'):   # the installable app: must sit at the site root
+        shutil.copy2(ROOT / 'src' / name, output / name)
     (output / '.nojekyll').write_text('')
     # Every page for search engines (the address to give Google Search Console: <site>/sitemap.xml)
     routes = sorted(p.parent.relative_to(ROOT / 'routes').as_posix() for p, _ in entries() if p.name == 'index.html')
