@@ -2,6 +2,13 @@
 
 Every change, newest first: what changed from what into what, the date, the checks run and their result.
 
+## 17 Nov 2026: "Report a mistake" and printing (Claude)
+- Footer link "Report a mistake" opens a GitHub issue form (new `.github/ISSUE_TEMPLATE/mistake.yml`: page, what's wrong, optional screenshot) with the current page's address filled in.
+- Print styles: menu, buttons and tabs hidden, black on white in either theme, cards kept whole across pages, guide links print their address.
+- `tools/check_site.py`: the report link carries the page; printing is black on white without the menu in both themes.
+- `?v=`: site.css 12, 09-startup 11.
+- Checks: `python3 tools/check_all.py`: ALL CHECKS PASSED.
+
 ## 17 Nov 2026: own title and link preview for every page (Claude)
 - `tools/build_routes.py` writes each page's own `<title>`, description, canonical link and `og:` preview: pages, characters (summary and portrait as the preview picture) and guides. Before, every address showed the site's general title in search results and on Discord. Text is escaped (tried with quotes, `&` and `<>` in a test character, removed again).
 - `SITE.pages[].description` (optional, new key, documented; `tools/data_shape.json` updated with only this key): one line per page, about the site itself.

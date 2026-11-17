@@ -277,6 +277,22 @@ def main():
                             visit(page, f'{base}/{route}', errors, f'{scheme} /{route}')
                             accessibility(page, axe, f'{scheme} /{route}', errors)
                             page.close()
+                # Report link: points at the report form with the current page filled in
+                page = browser.new_page(viewport=VIEWPORTS['desktop'])
+                visit(page, f'{base}/{SUBPATH}/guides', errors, 'report link')
+                href = page.get_attribute('#reportLink', 'href')
+                if 'template=mistake.yml' not in href or '%2Fguides' not in href:
+                    errors.append(f'report link: should open the mistake form for this page; is {href}')
+                page.close()
+                # Printing: white page, black text, no menu, in both themes
+                for scheme in ('dark', 'light'):
+                    page = browser.new_page(viewport=VIEWPORTS['desktop'], color_scheme=scheme)
+                    visit(page, f'{base}/{SUBPATH}/news', errors, f'print {scheme}')
+                    page.emulate_media(media='print')
+                    colours = page.evaluate("[getComputedStyle(document.body).backgroundColor, getComputedStyle(document.body).color]")
+                    if colours != ['rgb(255, 255, 255)', 'rgb(0, 0, 0)'] or page.is_visible('.sidebar'):
+                        errors.append(f'print {scheme}: printing should be black on white without the menu; got {colours}')
+                    page.close()
                 # Not-found page (GitHub Pages serves 404.html for any unknown address)
                 page = browser.new_page(viewport=VIEWPORTS['desktop'])
                 visit(page, f'{base}/{SUBPATH}/404.html', errors, 'not found')

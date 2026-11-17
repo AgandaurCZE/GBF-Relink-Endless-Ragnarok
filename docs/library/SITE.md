@@ -34,6 +34,10 @@ Back to the library: [README.md](../README.md). Rules: [AGENTS.md](../../AGENTS.
 
 Installing: Android/Chrome/Edge show "Install app" in the menu (or the browser's own install prompt). iPhone/iPad: Safari → Share → "Add to Home Screen" (Safari has no install button for sites); the `apple-*` tags in `src/index.html` give it its name, icon and status bar.
 
+## Feedback and printing
+- The footer's "Report a mistake" opens a GitHub issue form (`.github/ISSUE_TEMPLATE/mistake.yml`) with the page address filled in. Visitors need a GitHub account. When processing reports: check them against David's data, never against the internet (AGENTS.md data rule 1); close them with a note of what changed.
+- Printing (or "Save as PDF") gives just the page content, black on white; links inside guides print their address.
+
 ## Adding content quickly
 `python3 tools/scaffold.py character "Name" --tabs "Overview,Skills,Build"` or `python3 tools/scaffold.py guide "Title" --summary "…"` adds an empty entry to `data/game.json` (name and address only, nothing invented), sets `meta.updated` to today and regenerates the page addresses. Empty tabs show "More coming soon"; a guide without blocks is listed as "Coming soon".
 

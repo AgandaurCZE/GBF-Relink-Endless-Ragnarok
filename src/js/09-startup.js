@@ -3,6 +3,7 @@
    for each path under routes/, so GitHub Pages serves a real page at every address. */
 
 const APP_ROOT = new URL('.', document.baseURI).pathname;
+const REPORT_URL = 'https://github.com/AgandaurCZE/GBF-Relink-Endless-Ragnarok/issues/new?template=mistake.yml';
 
 async function loadJson(path) {
   const response = await fetch(path, { cache: 'no-cache' });
@@ -49,6 +50,7 @@ function showPage(page) {
   document.title =
     page.id === 'home' ? `${GAME.SITE.title} | Tier list, guides, tools` : `${page.label} | ${GAME.SITE.title}`;
   setMenu(false);
+  $('reportLink').href = REPORT_URL + '&page=' + encodeURIComponent(location.href); // the report form opens with this page filled in
   if (page.id === 'character') characterTabs(page.character);
   if (page.id === 'guide') guideScroll();
   if (page.id === 'news' || page.id === 'patches') postsShown(page.id);
