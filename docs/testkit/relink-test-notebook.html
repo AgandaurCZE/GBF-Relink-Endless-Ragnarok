@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Relink Test Notebook</title>
+<style>
+:root{--bg:#0b1424;--panel:#13213a;--panel2:#1a2c4b;--line:#27406a;--text:#e6eefb;--muted:#9fb2d3;--sky:#4fb3ff;--gold:#f2c45a;--red:#ff7a7a;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px 12px}
+button.primary{background:var(--sky);border-color:var(--sky);color:#06121f;font-weight:700}
+button.danger{border-color:var(--red);color:var(--red);background:none}
+button.link{background:none;border:0;padding:2px 4px;color:var(--sky)}
+input,textarea,select{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 9px}
+input:focus,textarea:focus{outline:2px solid var(--sky);outline-offset:-1px}
+label{display:block;font-size:13px;color:var(--muted);margin-bottom:3px}
+.app{display:grid;grid-template-columns:250px 1fr;min-height:100vh}
+aside{background:var(--panel);border-right:1px solid var(--line);padding:16px 12px}
+aside h1{font-size:17px;margin:0 0 2px}
+aside .sub{color:var(--gold);font-size:12px;font-weight:600;margin-bottom:14px}
+.test-item{display:block;width:100%;text-align:left;margin-bottom:4px;background:none;border:0;border-radius:8px;padding:8px 10px}
+.test-item.on{background:var(--panel2);box-shadow:inset 3px 0 0 var(--gold)}
+.test-item small{display:block;color:var(--muted)}
+main{padding:22px 28px;max-width:1100px}
+.status{font-size:12px;color:var(--muted);margin-top:14px}
+.status.warn{color:var(--gold)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:14px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.head h2{margin:0;font-size:22px}
+.muted{color:var(--muted)}
+.empty{padding:26px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:10px}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--muted);font-size:13px;white-space:nowrap}
+td.num{font-variant-numeric:tabular-nums}
+.dialog{position:fixed;inset:0;background:rgb(0 0 0/.55);display:grid;place-items:center;padding:16px;z-index:5}
+.dialog .card{width:min(560px,100%);max-height:90vh;overflow:auto}
+.ask{background:var(--panel2);border:1px solid var(--gold);border-radius:8px;padding:8px 10px;margin-top:8px}
+.menu-btn{display:none}
+@media(max-width:760px){.app{grid-template-columns:1fr}aside{display:none}aside.open{display:block}.menu-btn{display:inline-block;margin-bottom:12px}main{padding:16px}}
+</style>
+</head>
+<body>
+<div class="app">
+ <aside id="side">
+  <h1>Test Notebook</h1>
+  <div class="sub">Relink · Endless Ragnarok</div>
+  <button class="primary" id="newTest" style="width:100%;margin-bottom:12px">+ New test</button>
+  <div id="testList"></div>
+  <div class="status" id="status">Connecting…</div>
+ </aside>
+ <main>
+  <button class="menu-btn" id="menuBtn">☰ Tests</button>
+  <div id="view"><div class="empty">Loading…</div></div>
+ </main>
+</div>
+<div id="dialog"></div>
+<script>
+/* Relink Test Notebook. Data lives in the artifact's database:
+   tests/<id>   {name, about, subjectLabel, fields:[{name, unit}], createdAt}
+   entries/<id> {testId, subject, values:{field: text}, note, date, createdAt}
+   The repository keeps a copy of this page (docs/testkit/) and dated exports of the data. */
+const S = { db: null, tests: [], entries: [], current: null, filter: '', editing: null, canWrite: true, live: { tests: false, entries: false } };
+const $ = (id) => document.getElementById(id);
+const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const today = () => new Date().toISOString().slice(0, 10);
+
+function status(text, warn) { const s = $('status'); s.textContent = text; s.className = 'status' + (warn ? ' warn' : ''); }
+
+function parseFields(text) {
+  return text.split('\n').map((l) => l.trim()).filter(Boolean).map((l) => {
+    const m = l.match(/^(.*?)\s*\[(.*)\]\s*$/);
+    return m ? { name: m[1].trim(), unit: m[2].trim() } : { name: l, unit: '' };
+  });
+}
+const fieldsText = (fields) => fields.map((f) => (f.unit ? `${f.name} [${f.unit}]` : f.name)).join('\n');
+
+async function write(fn, okText) {
+  if (!S.db) return status('Not connected: nothing was saved.', true);
+  try { await fn(); status(okText || 'Saved.'); }
+  catch (e) {
+    if (e && e.code === 'invalid_argument') { S.canWrite = false; status('You can only read this notebook.', true); render(); }
+    else if (e && e.code === 'quota_exceeded') status('The notebook is full: export and delete old entries.', true);
+    else status('Could not save (' + (e && e.code || 'error') + '). Try again.', true);
+  }
+}
+
+// ===== Rendering
+function render() {
+  $('testList').innerHTML = S.tests.length ? S.tests.map((t) => {
+    const n = S.entries.filter((e) => e.testId === t.id).length;
+    return `<button class="test-item ${S.current === t.id ? 'on' : ''}" data-test="${esc(t.id)}">${esc(t.name)}<small>${n} entr${n === 1 ? 'y' : 'ies'}</small></button>`;
+  }).join('') : '<p class="muted">No tests yet.</p>';
+  $('newTest').hidden = !S.canWrite;
+  const t = S.tests.find((x) => x.id === S.current);
+  if (!t) {
+    $('view').innerHTML = S.tests.length
+      ? '<div class="empty">Pick a test on the left.</div>'
+      : `<div class="empty"><p><strong>No tests yet.</strong></p><p>A test is anything you measure the same way more than once: a skill's damage, a buff's duration, a stagger time. Give it the fields you note down, then add an entry each time you measure.</p>${S.canWrite ? '<button class="primary" data-act="new-test">Create the first test</button>' : ''}</div>`;
+    return;
+  }
+  const label = t.subjectLabel || 'Subject';
+  const all = S.entries.filter((e) => e.testId === t.id);
+  const f = S.filter.toLowerCase();
+  const rows = all.filter((e) => !f || `${e.subject} ${e.note} ${Object.values(e.values || {}).join(' ')}`.toLowerCase().includes(f));
+  const subjects = [...new Set(all.map((e) => e.subject).filter(Boolean))].sort();
+  const editing = S.entries.find((e) => e.id === S.editing);
+  const v = editing ? editing.values || {} : {};
+  const form = S.canWrite ? `<form class="card" id="entryForm">
+    <div class="row" style="justify-content:space-between;margin-bottom:8px"><strong>${editing ? 'Edit entry' : 'New entry'}</strong>${editing ? '<button type="button" class="link" data-act="cancel-edit">Cancel</button>' : ''}</div>
+    <div class="grid">
+     <div><label>${esc(label)}</label><input name="subject" list="subjects" value="${esc(editing ? editing.subject : '')}" autocomplete="off"></div>
+     ${t.fields.map((fl, i) => `<div><label>${esc(fl.name)}${fl.unit ? ' (' + esc(fl.unit) + ')' : ''}</label><input name="f${i}" value="${esc(v[fl.name] ?? '')}" autocomplete="off"></div>`).join('')}
+     <div><label>Date</label><input name="date" type="date" value="${esc(editing ? editing.date : today())}"></div>
+    </div>
+    <div style="margin-top:10px"><label>Note</label><textarea name="note" rows="2">${esc(editing ? editing.note : '')}</textarea></div>
+    <div class="row" style="margin-top:10px"><button class="primary" type="submit">${editing ? 'Save changes' : 'Add entry'}</button><span class="muted" style="font-size:13px">Enter in any field saves.</span></div>
+    <datalist id="subjects">${subjects.map((s) => `<option value="${esc(s)}">`).join('')}</datalist>
+   </form>` : '';
+  const table = rows.length ? `<div class="table-wrap"><table><thead><tr><th>Date</th><th>${esc(label)}</th>${t.fields.map((fl) => `<th>${esc(fl.name)}${fl.unit ? ' (' + esc(fl.unit) + ')' : ''}</th>`).join('')}<th>Note</th><th></th></tr></thead><tbody>${rows.map((e) => `<tr>
+     <td>${esc(e.date)}</td><td>${esc(e.subject)}</td>${t.fields.map((fl) => `<td class="num">${esc((e.values || {})[fl.name] ?? '')}</td>`).join('')}<td>${esc(e.note)}</td>
+     <td style="white-space:nowrap">${S.canWrite ? `<button class="link" data-edit="${esc(e.id)}">Edit</button><button class="link" data-del="${esc(e.id)}" style="color:var(--red)">Delete</button>` : ''}</td></tr>`).join('')}</tbody></table></div>`
+    : `<div class="empty">${all.length ? 'No entries match the filter.' : 'No entries yet.'}</div>`;
+  $('view').innerHTML = `<div class="head"><div><h2>${esc(t.name)}</h2>${t.about ? `<p class="muted" style="margin:4px 0 0">${esc(t.about)}</p>` : ''}</div>
+     <div class="row">${S.canWrite ? '<button data-act="edit-test">Edit test</button>' : ''}<button data-act="copy">Copy as JSON</button></div></div>
+    <div id="ask"></div><div style="height:12px"></div>${form}
+    <div class="card"><div class="row" style="justify-content:space-between;margin-bottom:8px"><strong>${all.length} entr${all.length === 1 ? 'y' : 'ies'}</strong>
+     <input id="filter" placeholder="Filter by ${esc(label.toLowerCase())}, value or note" value="${esc(S.filter)}" style="max-width:280px"></div>${table}</div>`;
+}
+
+function testDialog(t) {
+  S.dialogTest = t;
+  $('dialog').innerHTML = `<div class="dialog"><form class="card" id="testForm">
+    <h2 style="margin-top:0">${t ? 'Edit test' : 'New test'}</h2>
+    <label>Name</label><input name="name" required value="${esc(t ? t.name : '')}" placeholder="e.g. Skill damage on the training dummy">
+    <div style="height:10px"></div><label>What it is and how you measure it (optional)</label><textarea name="about" rows="2">${esc(t ? t.about : '')}</textarea>
+    <div style="height:10px"></div><label>What each entry is about</label><input name="subjectLabel" value="${esc(t ? t.subjectLabel : 'Character')}" placeholder="Character, Weapon, Sigil, Boss…">
+    <div style="height:10px"></div><label>Fields, one per line; a unit in brackets: <code>Damage</code>, <code>Duration [s]</code></label><textarea name="fields" rows="5" required>${esc(t ? fieldsText(t.fields) : '')}</textarea>
+    ${t ? '<p class="muted" style="font-size:13px">Renaming a field keeps old entries under the old name; they stay in the database and in the JSON copy.</p>' : ''}
+    <div class="row" style="justify-content:space-between;margin-top:12px">
+     <div class="row"><button class="primary" type="submit">${t ? 'Save' : 'Create test'}</button><button type="button" data-act="close">Cancel</button></div>
+     ${t ? '<button type="button" class="danger" data-act="delete-test">Delete test</button>' : ''}</div>
+    <div id="dialogAsk"></div></form></div>`;
+  $('testForm').querySelector('input').focus();
+}
+
+function ask(where, text, yes) {
+  $(where).innerHTML = `<div class="ask">${esc(text)} <button type="button" class="danger" id="askYes">Yes, delete</button> <button type="button" id="askNo">Keep it</button></div>`;
+  $('askYes').onclick = yes;
+  $('askNo').onclick = () => ($(where).innerHTML = '');
+}
+
+// ===== Events
+document.addEventListener('click', async (ev) => {
+  const b = ev.target.closest('button');
+  if (!b) return;
+  if (b.dataset.test) { location.hash = 'test-' + b.dataset.test; $('side').classList.remove('open'); return; }
+  if (b.dataset.edit) { S.editing = b.dataset.edit; render(); $('entryForm').scrollIntoView({ behavior: 'smooth' }); return; }
+  if (b.dataset.del) {
+    const e = S.entries.find((x) => x.id === b.dataset.del);
+    return ask('ask', `Delete the entry for ${e.subject || 'no ' + 'subject'} (${e.date})?`, () => write(() => S.db.doc('entries/' + e.id).delete(), 'Entry deleted.'));
+  }
+  const act = b.dataset.act || (b.id === 'newTest' ? 'new-test' : b.id === 'menuBtn' ? 'menu' : '');
+  const t = S.tests.find((x) => x.id === S.current);
+  if (act === 'new-test') testDialog(null);
+  if (act === 'edit-test') testDialog(t);
+  if (act === 'close') $('dialog').innerHTML = '';
+  if (act === 'cancel-edit') { S.editing = null; render(); }
+  if (act === 'menu') $('side').classList.toggle('open');
+  if (act === 'delete-test') {
+    const n = S.entries.filter((e) => e.testId === t.id).length;
+    ask('dialogAsk', `Delete "${t.name}" and its ${n} entries? This cannot be undone.`, async () => {
+      $('dialog').innerHTML = '';
+      for (const e of S.entries.filter((x) => x.testId === t.id)) await write(() => S.db.doc('entries/' + e.id).delete());
+      await write(() => S.db.doc('tests/' + t.id).delete(), 'Test deleted.');
+      location.hash = '';
+    });
+  }
+  if (act === 'copy') {
+    const data = { test: t, entries: S.entries.filter((e) => e.testId === t.id) };
+    try { await navigator.clipboard.writeText(JSON.stringify(data, null, 1)); status('Copied ' + data.entries.length + ' entries as JSON.'); }
+    catch { status('The browser blocked copying.', true); }
+  }
+});
+
+document.addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const fd = new FormData(ev.target);
+  if (ev.target.id === 'testForm') {
+    const t = S.dialogTest;
+    const body = { name: fd.get('name').trim(), about: fd.get('about').trim(), subjectLabel: fd.get('subjectLabel').trim() || 'Subject', fields: parseFields(fd.get('fields')) };
+    if (!body.name || !body.fields.length) return;
+    $('dialog').innerHTML = '';
+    if (t) await write(() => S.db.doc('tests/' + t.id).update(body), 'Test saved.');
+    else {
+      const ref = S.db.collection('tests').doc();
+      await write(() => ref.set({ ...body, createdAt: Date.now() }), 'Test created.');
+      location.hash = 'test-' + ref.id;
+    }
+  }
+  if (ev.target.id === 'entryForm') {
+    const t = S.tests.find((x) => x.id === S.current);
+    const values = {};
+    t.fields.forEach((fl, i) => { const v = String(fd.get('f' + i)).trim(); if (v) values[fl.name] = v; });
+    const editing = S.entries.find((e) => e.id === S.editing);
+    const body = { testId: t.id, subject: String(fd.get('subject')).trim(), values: { ...(editing ? editing.values : {}), ...values }, note: String(fd.get('note')).trim(), date: fd.get('date') || today() };
+    if (!Object.keys(values).length && !body.note) return status('Fill in at least one field or a note.', true);
+    if (editing) { await write(() => S.db.doc('entries/' + editing.id).set({ ...body, createdAt: editing.createdAt }), 'Entry saved.'); S.editing = null; }
+    else await write(() => S.db.collection('entries').doc().set({ ...body, createdAt: Date.now() }), 'Entry added.');
+    render();
+    const first = $('entryForm') && $('entryForm').querySelector('input[name="f0"]');
+    if (first) first.focus();
+  }
+});
+
+document.addEventListener('input', (ev) => {
+  if (ev.target.id !== 'filter') return;
+  S.filter = ev.target.value;
+  const pos = ev.target.selectionStart;
+  render();
+  const f = $('filter'); f.focus(); f.setSelectionRange(pos, pos);
+});
+
+function route() {
+  const m = location.hash.match(/^#test-([A-Za-z0-9_-]+)$/);
+  S.current = m ? m[1] : null;
+  S.editing = null; S.filter = '';
+  render();
+}
+window.addEventListener('hashchange', route);
+
+// ===== Data
+(async () => {
+  route();
+  if (!window.claude || !window.claude.use) return status('Open this notebook on claude.ai to save entries.', true);
+  const db = await claude.use('db');
+  if (!db) return status('Saving is not available in this view. Open the notebook on claude.ai.', true);
+  S.db = db;
+  const user = await claude.use('user');
+  if (user && user.can) { try { const ok = await user.can('data.write'); if (ok === false) S.canWrite = false; } catch {} }
+  const timer = setTimeout(() => status('The saved data can\'t be reached yet. Check your connection.', true), 10000);
+  const done = (key, meta) => { if (!meta.fromCache) S.live[key] = true; if (S.live.tests && S.live.entries) { clearTimeout(timer); status('All changes saved online.'); } };
+  db.collection('tests').orderBy('createdAt').onSnapshot((snap) => {
+    S.tests = snap.docs.map((d) => ({ id: d.id, fields: [], ...d.data() }));
+    done('tests', snap.metadata); render();
+  }, (e) => { clearTimeout(timer); status('Tests could not be loaded (' + e.code + ').', true); });
+  db.collection('entries').orderBy('createdAt', 'desc').onSnapshot((snap) => {
+    S.entries = snap.docs.map((d) => ({ id: d.id, values: {}, ...d.data() }));
+    done('entries', snap.metadata);
+    const active = document.activeElement;
+    if (!(active && active.closest && active.closest('form'))) render(); // never redraw over what is being typed
+  }, (e) => { clearTimeout(timer); status('Entries could not be loaded (' + e.code + ').', true); });
+})();
+</script>
+</body>
+</html>

@@ -19,6 +19,16 @@ The index of every note in the repository. A new chat (Claude, ChatGPT, Codex or
 | Agreed decisions: tier rules, ratings and the reasoning behind them | [`library/DECISIONS.md`](library/DECISIONS.md) |
 | Notes for ChatGPT / Codex | [`../CHATGPT.md`](../CHATGPT.md) |
 
+## Tools outside the repository
+
+| Tool | Live link | Page source | Data copies |
+|---|---|---|---|
+| Test Notebook: David's measurements while playing. He defines each test (fields, units, what an entry is about) and adds entries; data is saved in the artifact's own database, only he can write. | https://claude.ai/artifact/3TRUSLHHo3JA7FLkcD8EPX (slug `13e2b288-3fa0-4547-8987-a694e9fb02e6`) | [`testkit/relink-test-notebook.html`](testkit/relink-test-notebook.html) | `testkit/notebook-<date>.json` (none yet) |
+
+- **Backup routine (carried over from DragonSword):** at the end of a session that used the notebook's data, export it (`db_list` on `tests` and `entries` with the slug above) into `testkit/notebook-<YYYY-MM-DD>.json`, and delete the previous dated copy once the new one contains it (git keeps the history). David can also press "Copy as JSON" on a test and paste it into `inbox/`.
+- After changing the notebook page, edit `testkit/relink-test-notebook.html` and publish it to the same artifact (`publish_files`, slug above). Entries are not stored in the page, so republishing keeps them.
+- Measurements from the notebook that the guide uses go into `data/research.json` (working numbers) and `data/game.json` (what the site shows).
+
 ## History
 
 | File | What it holds |

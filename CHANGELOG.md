@@ -2,6 +2,11 @@
 
 Every change, newest first: what changed from what into what, the date, the checks run and their result.
 
+## 17 Nov 2026: Test Notebook (Claude)
+- New artifact **Relink Test Notebook** (https://claude.ai/artifact/3TRUSLHHo3JA7FLkcD8EPX), page source in `docs/testkit/relink-test-notebook.html`. David creates tests (name, how it's measured, what an entry is about, fields with units) and adds, edits, filters and deletes entries; "Copy as JSON" per test. Data in the artifact's database (`tests/`, `entries/`), readable by whoever he shares it with, writable only by him (`write: owner`). Tried in a browser with a stand-in database: create test, add two entries, edit, filter, delete; no errors.
+- `docs/README.md`: new "Tools outside the repository" section with the backup routine (dated `docs/testkit/notebook-<date>.json` exports); STATUS lists the ready tools.
+- Checks: `python3 tools/check_all.py`: ALL CHECKS PASSED.
+
 ## 17 Nov 2026: site extras (Claude)
 - **Page not found:** `routes/404.html` (generated) shows a "Page not found" page with the menu for any unknown address; unknown routes no longer fall back to Home silently.
 - **Share image:** `assets/ui/og-image.jpg` (1200×630, drawn from the site's colours and emblem, no game art) and the `og:image` / Twitter tags in `src/index.html`, so links posted on Discord, Reddit etc. show a picture.
