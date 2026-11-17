@@ -9,7 +9,7 @@ Carried over from the DragonSword: Awakening guide (`AgandaurCZE/DragonSword-Awa
 - He checks claims. Never state anything the data can't back up, and **never invent numbers**.
 
 ## Source of truth
-- **The GitHub repository is the only source of truth.** Numbers come from David's screenshots, in-game data and notes (dropped in `inbox/`), and the official patch notes, stored here. AIs make sense of those numbers; they don't add outside data unless David asks. (Open question for this game: see [STATUS.md](STATUS.md).)
+- **The GitHub repository is the only source of truth (confirmed for this game, 17 Nov 2026).** David likes to test and find things out himself, as in the DragonSword guide. Game data comes only from his screenshots, in-game data and notes (dropped in `inbox/`), stored here. **Nothing about the game from the internet**: no wikis, guides, databases, videos or other tier lists. The internet is only for coding, page structure and tools. AIs make sense of his numbers; they don't add outside data.
 - He relies on the repo, not on chat memory: when he sends numbers, save them in the repo straight away (`data/`, the matching note, CHANGELOG).
 
 ## How he wants to work

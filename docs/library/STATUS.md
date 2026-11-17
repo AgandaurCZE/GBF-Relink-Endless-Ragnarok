@@ -7,9 +7,8 @@ Back to the library: [README.md](../README.md).
 - **Next:** David starts the game and sends the first material (screenshots, notes) through `inbox/`. The first characters define the shape of `CHARACTERS` (see [DATA_REFERENCE.md](../DATA_REFERENCE.md)).
 
 ## Open questions for David
-- **Sources for this game.** The DragonSword rule is "only David's own data, no wikis unless he asks". Same here, or may official/community sources be used for this game?
 - **Which pages matter first** (tier list, character builds, sigils, weapons, quests, a damage calculator …), so `SITE.pages` and the data grow in that order.
 - **What the tier list rates**: overall, by content (e.g. Chaos difficulty, solo/co-op), by role? The tier rules go into [DECISIONS.md](DECISIONS.md).
 
-## Setup to finish (David)
-- GitHub repository **Settings → Pages → Build and deployment → Source = "GitHub Actions"**. Until then, the "Check and publish" run fails at the publish step and the site isn't live.
+## Setup
+- GitHub Pages: Source = "GitHub Actions" (David set it on 17 Nov 2026).

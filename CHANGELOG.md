@@ -2,6 +2,10 @@
 
 Every change, newest first: what changed from what into what, the date, the checks run and their result.
 
+## 17 Nov 2026: source rule confirmed (Claude)
+- David: as in DragonSword, he finds everything out himself; the repo is the only source of truth and nothing about the game comes from the internet (only coding, page structure and tools). AGENTS.md data rule 1 changed from "David's data or the official patch notes" into this rule; also WORKING_WITH_DAVID.md, STATUS.md (open question removed, Pages setup done) and DONE.md.
+- Checks: `python3 tools/check_all.py`: ALL CHECKS PASSED.
+
 ## 17 Nov 2026: cache-number check fixed for the first push (Claude)
 - The first publish run (`c2e49db`) passed every check but stopped at "cache numbers": it compares `?v=` values with the commit before the push, GitHub's starter commit `37e17d8`, which had no site yet, and reported that as "NOT RUN". Changed `cache_numbers()` in `tools/check_all.py`: a readable commit without `src/index.html` now counts as nothing to compare (ok); an unreadable commit is still "NOT RUN". A bug in the new check, not a loosening.
 - Checks: `python3 tools/check_all.py`: ALL CHECKS PASSED.
