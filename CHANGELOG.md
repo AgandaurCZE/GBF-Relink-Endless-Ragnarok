@@ -2,6 +2,10 @@
 
 Every change, newest first: what changed from what into what, the date, the checks run and their result.
 
+## 17 Nov 2026: inbox picture tool (Claude)
+- New `tools/inbox_images.py`: `list` (pictures waiting in `inbox/`), `asset` (crop, resize, save as `.webp` in `assets/`, lossless unless `--lossy`, names checked, 5 MB limit), `archive` (move an original into `sources/` as `<name>-<date>`, tidy empty inbox folders). Tried on a sample picture. Mentioned in AGENTS.md (inbox row) and `inbox/README.md`.
+- Checks: `python3 tools/check_all.py`: ALL CHECKS PASSED.
+
 ## 17 Nov 2026: Steam news live; patch-note choice fixed (Claude)
 - The site is live (publish run 3 passed after David enabled GitHub Pages). The first "Refresh Steam news" run (started by hand) passed and committed 37 news posts and 13 patch notes.
 - Fix in `tools/steam_news.py`: "Important Notice (Ver. 2.0.3)" had become the 2.0.3 patch note and "Ver. 2.0.3 Update Information" went to News. A title with "Update" now wins the version; both lists stay newest first. The next automatic run rewrites `data/steam-news.json`.
