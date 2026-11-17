@@ -1,6 +1,7 @@
 {
  "name": "Granblue Fantasy: Relink - Endless Ragnarok guide",
  "short_name": "Relink Guide",
+ "id": "./",
  "description": "Fan-made guide to Granblue Fantasy: Relink - Endless Ragnarok: tier list, guides and tools.",
  "start_url": "./",
  "scope": "./",

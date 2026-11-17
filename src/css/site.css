@@ -10,6 +10,7 @@
   --muted: #9fb2d3;
   --sky: #4fb3ff;
   --gold: #f2c45a;
+  --gold-ink: var(--gold); /* gold used as text; darker in light mode so it stays readable */
   --radius: 10px;
   --sidebar: 230px;
   color-scheme: dark;
@@ -67,7 +68,7 @@ a {
 
 .sidebar-brand small {
   display: block;
-  color: var(--gold);
+  color: var(--gold-ink);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -328,7 +329,7 @@ footer {
 .block h3 {
   margin: 0 0 8px;
   font-size: 16px;
-  color: var(--gold);
+  color: var(--gold-ink);
 }
 
 .table-wrap {
@@ -618,7 +619,7 @@ th {
 
 .hero-kicker {
   margin: 0 0 4px;
-  color: var(--gold);
+  color: var(--gold-ink);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -695,8 +696,9 @@ th {
   --line: #cfdbee;
   --text: #13213a;
   --muted: #586a89;
-  --sky: #1673c9;
+  --sky: #1366b3;
   --gold: #c08a12;
+  --gold-ink: #7f5b05;
   color-scheme: light;
 }
 
@@ -708,8 +710,9 @@ th {
     --line: #cfdbee;
     --text: #13213a;
     --muted: #586a89;
-    --sky: #1673c9;
+    --sky: #1366b3;
     --gold: #c08a12;
+    --gold-ink: #7f5b05;
     color-scheme: light;
   }
 }

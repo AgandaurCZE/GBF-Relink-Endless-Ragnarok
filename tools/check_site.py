@@ -1,7 +1,8 @@
 """Browser check: open every page of the assembled site in a real browser, on desktop and phone sizes.
 
 Fails on: a console error or uncaught exception, a file that fails to load, a page showing the wrong title,
-in-site navigation that doesn't change the address, or visible text that must never be public (VISIBLE_RULES).
+in-site navigation that doesn't change the address, visible text that must never be public (VISIBLE_RULES), or an
+accessibility problem (axe-core, WCAG 2 A and AA: contrast, missing labels, ...) on any page in light or dark mode.
 The site is served under /GBF-Relink-Endless-Ragnarok/, the same sub-path GitHub Pages uses.
 News, Patch Notes and a character page are also drawn with sample data (a Steam post, a character with every block
 type), so those renderers are tested before real content arrives.
@@ -10,6 +11,7 @@ type), so those renderers are tested before real content arrives.
 Exit codes: 0 = passed, 1 = failed, 2 = could not run (Playwright or a browser is missing).
 """
 import functools
+import subprocess
 import json
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -78,6 +80,27 @@ DEAD_LINKS = """[...document.querySelectorAll('a[data-route]')]
   .concat([...document.querySelectorAll('a[data-anchor]')].map((a) => a.dataset.anchor).filter((id) => !document.getElementById(id)).map((id) => '#' + id))"""
 
 
+AXE_VERSION = '4.14.1'   # the accessibility checker, installed from npm into a temporary folder for each run
+
+
+def load_axe(folder):
+    """axe-core's script, or None when npm can't install it (then the accessibility part is skipped and said so)."""
+    npm = shutil.which('npm')
+    if not npm:
+        return None
+    r = subprocess.run([npm, 'install', '--no-save', '--no-audit', '--no-fund', '--prefix', folder, f'axe-core@{AXE_VERSION}'],
+                       capture_output=True, text=True)
+    path = Path(folder) / 'node_modules' / 'axe-core' / 'axe.min.js'
+    return path.read_text(encoding='utf-8') if r.returncode == 0 and path.exists() else None
+
+
+def accessibility(page, axe, label, errors):
+    page.add_script_tag(content=axe)
+    found = page.evaluate("""axe.run(document, {runOnly: {type: 'tag', values: ['wcag2a', 'wcag2aa']}}).then((r) =>
+      r.violations.map((v) => `${v.id} (${v.impact}): ${v.help}, at ${v.nodes.slice(0, 3).map((n) => n.target.join(' ')).join(' | ')}`))""")
+    errors += [f'{label}: accessibility: {f}' for f in found]
+
+
 def dead_links(page, label, errors):
     """Every in-site link on the page leads to a real page, and every contents link to a real section."""
     for route in page.evaluate(DEAD_LINKS):
@@ -106,8 +129,10 @@ def main():
         game['GUIDES'] = [SAMPLE_GUIDE, dict(id='later', title='Later guide', summary='Not written yet.')]
         (sample_dir / 'data' / 'game.json').write_text(json.dumps(game))
         entry = (ROOT / 'src' / 'index.html').read_text(encoding='utf-8').replace('<base href="./">', '<base href="../../">', 1)
-        (sample_dir / 'characters' / 'sample-hero').mkdir(parents=True)
-        (sample_dir / 'characters' / 'sample-hero' / 'index.html').write_text(entry, encoding='utf-8')
+        for route in ('characters/sample-hero', 'guides/sample-guide'):   # direct links to the sample pages
+            (sample_dir / route).mkdir(parents=True)
+            (sample_dir / route / 'index.html').write_text(entry, encoding='utf-8')
+        axe = load_axe(str(Path(tmp) / 'axe'))
         server = ThreadingHTTPServer(('127.0.0.1', 0), functools.partial(Quiet, directory=tmp))
         threading.Thread(target=server.serve_forever, daemon=True).start()
         base = f'http://127.0.0.1:{server.server_port}'
@@ -242,6 +267,16 @@ def main():
                         if page.evaluate('window.scrollY') > 5:
                             errors.append('back to top: the button did not scroll to the top')
                 page.close()
+                # Accessibility: every page and the sample pages, in dark and light mode
+                if axe:
+                    routes = [f'{SUBPATH}/{p["route"]}' for p in pages] + [f'sample/{SUBPATH}/{r}' for r in (
+                        'characters/sample-hero', 'guides/sample-guide', 'tierlist', '')]
+                    for scheme in ('dark', 'light'):
+                        for route in routes:
+                            page = browser.new_page(viewport=VIEWPORTS['desktop'], color_scheme=scheme)
+                            visit(page, f'{base}/{route}', errors, f'{scheme} /{route}')
+                            accessibility(page, axe, f'{scheme} /{route}', errors)
+                            page.close()
                 # Not-found page (GitHub Pages serves 404.html for any unknown address)
                 page = browser.new_page(viewport=VIEWPORTS['desktop'])
                 visit(page, f'{base}/{SUBPATH}/404.html', errors, 'not found')
@@ -317,7 +352,8 @@ def main():
     if errors:
         print('Browser check failed:\n' + '\n'.join(errors))
         return 1
-    print(f'Browser check OK: {len(pages)} pages on {len(VIEWPORTS)} screen sizes, navigation, the news renderer, a character page, a guide, search and 404.')
+    a11y = 'accessibility in light and dark' if axe else 'NOT the accessibility part (npm could not install axe-core)'
+    print(f'Browser check OK: {len(pages)} pages on {len(VIEWPORTS)} screen sizes, navigation, the news renderer, a character page, a guide, search, 404, {a11y}.')
     return 0
 
 

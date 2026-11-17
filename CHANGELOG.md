@@ -2,6 +2,14 @@
 
 Every change, newest first: what changed from what into what, the date, the checks run and their result.
 
+## 17 Nov 2026: phone install check, accessibility check (Claude)
+- Checked the live site: manifest, all three icons and the offline worker load and take over. Added the iPhone home-screen tags (`apple-mobile-web-app-*`, name "Relink Guide") and a stable app `id`; how to install on each phone is in `docs/library/SITE.md`.
+- **New check:** `tools/check_site.py` runs axe-core (WCAG 2 A and AA, installed from npm for each run) on every page and the sample character, guide, tier list and Home, in dark and light mode. Skipped (and said so) only where npm is missing.
+- It found two real problems in light mode, both fixed: gold text was too faint on white (new `--gold-ink`, darker in light mode, for gold used as text) and links were just under the contrast minimum (light-mode blue `#1673c9` → `#1366b3`, 4.5 → 5.4 : 1). Dark mode had none.
+- The sample guide now also has its own page file in the test build, so it can be opened directly.
+- `?v=`: site.css 11.
+- Checks: `python3 tools/check_all.py`: ALL CHECKS PASSED.
+
 ## 17 Nov 2026: Tier List Editor and import (Claude)
 - New artifact **Relink Tier List Editor** (https://claude.ai/artifact/NcqRc5BJkia6KCAPyz2pVN, source `docs/testkit/relink-tier-editor.html`): David sets the tiers (or starts from S–D), creates lists, adds characters, and places them by dragging (mouse) or tapping (phone); the order inside a tier is kept. Saved in the artifact's database; only he can write. "Copy for the guide" gives `TIER_LIST`.
 - New `tools/import_tiers.py`: puts an editor export into `data/game.json`, prints who moved where per list (`--dry-run` first), dates changed lists, refuses names that aren't characters unless `--add-missing`. Tried: missing names refused, added with the flag, an in-tier reorder recognised; test data removed again.
