@@ -2,6 +2,9 @@
 
 Every change, newest first: what changed from what into what, the date, the checks run and their result.
 
+## 17 Nov 2026: GitHub About box (Claude, in the browser)
+- Repository page, "About": website set to the GitHub Pages site; topics `granblue-fantasy-relink`, `tier-list`, `game-guide`, `fan-site`, `github-pages`; the empty "Releases" and "Packages" boxes hidden from the front page (Deployments kept). Description unchanged. All reversible under the ⚙ next to "About".
+
 ## 17 Nov 2026: "Report a mistake" and printing (Claude)
 - Footer link "Report a mistake" opens a GitHub issue form (new `.github/ISSUE_TEMPLATE/mistake.yml`: page, what's wrong, optional screenshot) with the current page's address filled in.
 - Print styles: menu, buttons and tabs hidden, black on white in either theme, cards kept whole across pages, guide links print their address.
