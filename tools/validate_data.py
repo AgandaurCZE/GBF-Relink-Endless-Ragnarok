@@ -87,6 +87,8 @@ for c in d['CHARACTERS']:
         if slug in slugs:
             bad(f'{where}: slug {slug!r} is used twice')
         slugs.add(slug)
+    if c.get('updated') and not re.fullmatch(r'\d{4}-\d{2}-\d{2}', c['updated']):
+        bad(f'{where}: updated must be a date YYYY-MM-DD')
     tab_ids = set()
     for t in c.get('tabs', []):
         if t.get('id') in tab_ids or not re.fullmatch(NAME, t.get('id', '')):

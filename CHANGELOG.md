@@ -2,6 +2,13 @@
 
 Every change, newest first: what changed from what into what, the date, the checks run and their result.
 
+## 17 Nov 2026: home dashboard (Claude)
+- Home is now a dashboard: a banner (with the game version when `meta.patch` is set), the latest patch (with "New" when unseen), the three newest news posts, "Recently updated" guides and characters (by `updated`), character portraits, and the page shortcuts. Empty sections stay hidden.
+- Characters can have `updated` (date); `tools/scaffold.py` sets it, `tools/validate_data.py` checks the format.
+- `tools/check_site.py`: Home with sample content shows every section and has no dead links.
+- `?v=`: site.css 8, 02-pages 4, 09-startup 7.
+- Checks: `python3 tools/check_all.py`: ALL CHECKS PASSED.
+
 ## 17 Nov 2026: publishing steps updated; patch mentions on character pages (Claude)
 - `.github/workflows/deploy.yml`: `configure-pages` v5 → v6, `upload-pages-artifact` v4 → v5, `deploy-pages` v4 → v5 (the Node.js 24 versions; v5 of configure-pages showed a deprecation warning on every run).
 - Character pages end with "In the official patch notes and news": every Steam post that names the character (whole word, any case, also `aliases`), newest patches first, linking to the exact post. Only official posts are linked; nothing is copied into the guide data.

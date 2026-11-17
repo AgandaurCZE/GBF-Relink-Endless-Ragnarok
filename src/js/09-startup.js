@@ -44,7 +44,7 @@ function showPage(page) {
     .querySelectorAll('.nav-item')
     .forEach((a) => a.classList.toggle('active', a.dataset.page === (page.nav || page.id)));
   $('pageTitle').textContent = page.id === 'home' ? GAME.SITE.title : page.label;
-  $('pageMeta').textContent = GAME.meta.patch ? `Game version ${GAME.meta.patch}` : '';
+  $('pageMeta').textContent = GAME.meta.patch && page.id !== 'home' ? `Game version ${GAME.meta.patch}` : ''; // Home shows it in its banner
   $('pageBody').innerHTML = (PAGES[page.id] || (() => emptyState('Coming soon.')))(page);
   document.title =
     page.id === 'home' ? `${GAME.SITE.title} | Tier list, guides, tools` : `${page.label} | ${GAME.SITE.title}`;

@@ -31,7 +31,7 @@ VISIBLE_RULES = [(re.compile(r'\bDavid\b'), 'the owner\'s name'), (re.compile(r'
 SAMPLE_POST = dict(id='1', title='Sample announcement', date='2026-01-01', url='https://store.steampowered.com/news/app/881020',
                    body='[h2]Heading[/h2]\nSample Hero was adjusted.\n[b]Bold[/b] text [url=https://example.com]link[/url]\n[list][*]one[*]two[/list]\n'
                         '[img]{STEAM_CLAN_IMAGE}/x.png[/img]<script>alert(1)</script>')
-SAMPLE_CHARACTER = dict(name='Sample Hero', slug='sample-hero', summary='A sample <b>character</b>.', tabs=[
+SAMPLE_CHARACTER = dict(name='Sample Hero', slug='sample-hero', updated='2026-01-02', image='assets/ui/favicon.svg', summary='A sample <b>character</b>.', tabs=[
     dict(id='overview', label='Overview', blocks=[dict(type='text', text='First paragraph.\n\nSecond <script>alert(1)</script>'),
                                                   dict(type='stats', title='Stats', items=[dict(label='HP', value='100')])]),
     dict(id='skills', label='Skills', blocks=[dict(type='table', title='Skills', columns=['Skill', 'Cooldown'], rows=[['Slash', '5 s']]),
@@ -162,6 +162,16 @@ def main():
                 page.wait_for_selector('.post')
                 if page.query_selector('.badge.new'):
                     errors.append('post link: "New" is still shown after the post was seen')
+                page.close()
+                # Home dashboard with content: latest patch, news, recently updated, characters, and no dead links
+                page = browser.new_page(viewport=VIEWPORTS['phone'])
+                visit(page, f'{base}/sample/{SUBPATH}/', errors, 'sample home')
+                for selector, what in (('.latest', 'the latest patch'), ('.link-list a[data-route^="news#"]', 'the news'),
+                                       ('.link-list a[data-route="guides/sample-guide"]', 'a recently updated guide'),
+                                       ('.roster .character', 'the character portraits')):
+                    if not page.query_selector(selector):
+                        errors.append(f'sample home: {what} missing from Home')
+                dead_links(page, 'sample home', errors)
                 page.close()
                 # Keyboard: "/" focuses search, Esc clears it; "Back to top" shows after scrolling (sample news is long enough)
                 page = browser.new_page(viewport=dict(width=1280, height=400))

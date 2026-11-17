@@ -602,3 +602,87 @@ th {
 .mentions a:hover {
   color: var(--sky);
 }
+
+/* ===== Home dashboard (js/02-pages.js) */
+.hero {
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 16px;
+  padding: 26px 28px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 85% 20%, rgb(79 179 255 / 0.35), transparent 55%),
+    radial-gradient(circle at 10% 110%, rgb(242 196 90 / 0.18), transparent 50%), var(--panel);
+}
+
+.hero-kicker {
+  margin: 0 0 4px;
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.hero-text {
+  max-width: 620px;
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+
+.latest {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  align-items: baseline;
+  border-left: 4px solid var(--gold);
+}
+
+.dashboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 12px;
+}
+
+.dashboard h2,
+.section-title {
+  margin: 0 0 8px;
+  font-size: 17px;
+}
+
+.section-title {
+  margin-top: 18px;
+}
+
+.link-list {
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.link-list li {
+  padding: 5px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.link-list a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.link-list a:hover {
+  color: var(--sky);
+}
+
+.roster {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 8px;
+}
+
+.roster .character {
+  margin: 0;
+  padding: 8px;
+  font-size: 13px;
+}

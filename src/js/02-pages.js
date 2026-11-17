@@ -1,8 +1,55 @@
 /* js/02-pages.js: Home, Tier List, Characters and Tools (Guides: js/06-guides.js).
    Each page reads its content from data/game.json; none of the content lives in this file. */
 
-// ===== Home
+// ===== Home: a dashboard. Each section shows only when it has something to show.
 PAGES.home = () => {
+  const patch = NEWS.patches[0];
+  const seen = lastSeen('patches');
+  const version = GAME.meta.patch ? `<span class="badge">Game version ${esc(GAME.meta.patch)}</span>` : '';
+  const hero = `<section class="hero"><div><p class="hero-kicker">Fan-made guide</p>
+    <p class="hero-text">Tier list, character guides and tools for <strong>Granblue Fantasy: Relink - Endless Ragnarok</strong>.</p>${version}</div></section>`;
+  const latest = patch
+    ? `<a class="card shortcut latest" href="patch-notes#${esc(postAnchor(patch))}" data-route="patch-notes#${esc(postAnchor(patch))}">
+      <span class="muted">Latest patch</span>${seen && patch.date > seen ? '<span class="badge new">New</span>' : ''}
+      <strong>${esc(patch.title)}</strong><span class="post-date">${formatDate(patch.date)}</span></a>`
+    : '';
+  const news = NEWS.posts.slice(0, 3);
+  const newsList = news.length
+    ? `<section class="card"><h2>News</h2><ul class="link-list">${news
+        .map(
+          (p) =>
+            `<li><a href="news#${esc(postAnchor(p))}" data-route="news#${esc(postAnchor(p))}"><span class="post-date">${formatDate(p.date)}</span>${esc(p.title)}</a></li>`,
+        )
+        .join('')}</ul><a href="news" data-route="news">All news →</a></section>`
+    : '';
+  const recent = [
+    ...GAME.GUIDES.filter((g) => g.updated && g.blocks?.length).map((g) => ({
+      kind: 'Guide',
+      title: g.title,
+      date: g.updated,
+      route: guideRoute(g),
+    })),
+    ...GAME.CHARACTERS.filter((c) => c.updated && c.slug).map((c) => ({
+      kind: 'Character',
+      title: c.name,
+      date: c.updated,
+      route: characterRoute(c),
+    })),
+  ]
+    .sort((a, b) => (a.date < b.date ? 1 : -1))
+    .slice(0, 6);
+  const recentList = recent.length
+    ? `<section class="card"><h2>Recently updated</h2><ul class="link-list">${recent
+        .map(
+          (r) =>
+            `<li><a href="${esc(r.route)}" data-route="${esc(r.route)}"><span class="post-date">${formatDate(r.date)}</span><span class="muted">${r.kind}</span> ${esc(r.title)}</a></li>`,
+        )
+        .join('')}</ul></section>`
+    : '';
+  const portraits = GAME.CHARACTERS.filter((c) => c.image && c.slug).slice(0, 12);
+  const roster = portraits.length
+    ? `<section><h2 class="section-title">Characters</h2><div class="roster">${portraits.map(characterChip).join('')}</div></section>`
+    : '';
   const cards = GAME.SITE.pages
     .filter((p) => p.id !== 'home')
     .map(
@@ -10,8 +57,8 @@ PAGES.home = () => {
         `<a class="card shortcut" href="${esc(p.route)}" data-route="${esc(p.route)}"><strong>${esc(p.label)}</strong></a>`,
     )
     .join('');
-  return `<section class="intro"><p>A fan-made guide to <strong>Granblue Fantasy: Relink - Endless Ragnarok</strong>: tier list, character guides and tools.</p></section>
-  <div class="grid shortcuts">${cards}</div>`;
+  return `${hero}${latest}<div class="dashboard">${recentList}${newsList}</div>${roster}
+  <h2 class="section-title">Explore</h2><div class="grid shortcuts">${cards}</div>`;
 };
 
 // ===== Tier list: TIER_LIST.tiers (order, colours) and TIER_LIST.ratings (character name -> tier)

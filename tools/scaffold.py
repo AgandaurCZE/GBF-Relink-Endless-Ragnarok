@@ -40,7 +40,7 @@ def main():
         slug = a.slug or slugify(a.name)
         if any(c['name'] == a.name or c.get('slug') == slug for c in game['CHARACTERS']):
             sys.exit(f'A character named {a.name!r} or with the slug {slug!r} already exists.')
-        entry = {'name': a.name, 'slug': slug}
+        entry = {'name': a.name, 'slug': slug, 'updated': date.today().isoformat()}
         if a.image:
             if not (ROOT / a.image).is_file():
                 sys.exit(f'No such picture: {a.image} (make one with tools/inbox_images.py asset)')
