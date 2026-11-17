@@ -2,6 +2,11 @@
 
 Every change, newest first: what changed from what into what, the date, the checks run and their result.
 
+## 17 Nov 2026: own title and link preview for every page (Claude)
+- `tools/build_routes.py` writes each page's own `<title>`, description, canonical link and `og:` preview: pages, characters (summary and portrait as the preview picture) and guides. Before, every address showed the site's general title in search results and on Discord. Text is escaped (tried with quotes, `&` and `<>` in a test character, removed again).
+- `SITE.pages[].description` (optional, new key, documented; `tools/data_shape.json` updated with only this key): one line per page, about the site itself.
+- Checks: `python3 tools/check_all.py`: ALL CHECKS PASSED.
+
 ## 17 Nov 2026: AGENTS.md data rule 2 updated (Claude)
 - Still named the old `TIER_LIST.ratings`; now `TIER_LIST.lists`, placements agreed with David in the Tier List Editor.
 

@@ -7,7 +7,9 @@ Run after changing src/index.html, SITE.pages, a character's slug or a guide's i
     python3 tools/build_routes.py            write the entries
     python3 tools/build_routes.py --check    only verify them (check_all.py runs this)
 """
+import html
 import json
+import re
 from pathlib import Path
 import sys
 
@@ -17,20 +19,45 @@ SITE_URL = 'https://agandaurcze.github.io/GBF-Relink-Endless-Ragnarok/'   # wher
 SITE_PATH = '/GBF-Relink-Endless-Ragnarok/'
 
 
+def page_meta(shell, title, description, url, image=None):
+    """The entry page with its own <title>, description and link preview (Discord, Reddit, search results)."""
+    a = lambda v: html.escape(v, quote=True)
+    out = re.sub(r'<title>.*?</title>', f'<title>{html.escape(title)}</title>', shell, count=1)
+    for pattern, value in ((r'(<meta name="description" content=")[^"]*', description), (r'(<meta property="og:title" content=")[^"]*', title),
+                           (r'(<meta property="og:description" content=")[^"]*', description), (r'(<meta property="og:url" content=")[^"]*', url)):
+        out = re.sub(pattern, lambda m: m.group(1) + a(value), out, count=1)
+    if image:
+        out = re.sub(r'(<meta property="og:image" content=")[^"]*', lambda m: m.group(1) + a(SITE_URL + image), out, count=1)
+    return out.replace('<meta property="og:url"', f'<link rel="canonical" href="{a(url)}">\n<meta property="og:url"', 1)
+
+
 def entries():
     game = json.loads((ROOT / 'data' / 'game.json').read_text(encoding='utf-8'))
     pages = game['SITE']['pages']
     shell = (ROOT / 'src' / 'index.html').read_text(encoding='utf-8')
-    yield ROOT / 'routes' / 'index.html', MARKER + shell
+    site = game['SITE']['title']
+    meta = {p['route']: (p['label'] if p['route'] else '', p.get('description', ''), None) for p in pages}
+    for c in game['CHARACTERS']:
+        if c.get('slug'):
+            meta[f'characters/{c["slug"]}'] = (c['name'], c.get('summary') or f'{c["name"]} in {site}: character guide.', c.get('image'))
+    for g in game['GUIDES']:
+        if g.get('blocks'):
+            meta[f'guides/{g["id"]}'] = (g['title'], g.get('summary') or f'{g["title"]}: a guide for {site}.', None)
+
+    def entry(route, base):
+        label, description, image = meta[route]
+        title = f'{label} | {site}' if label else f'{site} | Tier list, guides, tools'
+        url = SITE_URL + (route + '/' if route else '')
+        return MARKER + page_meta(shell, title, description or meta[''][1], url, image).replace('<base href="./">', f'<base href="{base}">', 1)
+
+    yield ROOT / 'routes' / 'index.html', entry('', './')
     # GitHub Pages answers any unknown address with 404.html, at any depth, so its base is the absolute site path.
     yield ROOT / 'routes' / '404.html', MARKER + shell.replace('<base href="./">', f'<base href="{SITE_PATH}">', 1)
-    routes = {p['route'] for p in pages} | {f'characters/{c["slug"]}' for c in game['CHARACTERS'] if c.get('slug')}
-    routes |= {f'guides/{g["id"]}' for g in game['GUIDES'] if g.get('blocks')}
-    for route in sorted(routes - {''}):
+    for route in sorted(set(meta) - {''}):
         if any(part in ('', '.', '..') for part in route.split('/')):
             raise ValueError(f'Invalid route: {route!r}')
         base = '../' * len(route.split('/'))
-        yield ROOT / 'routes' / route / 'index.html', MARKER + shell.replace('<base href="./">', f'<base href="{base}">', 1)
+        yield ROOT / 'routes' / route / 'index.html', entry(route, base)
 
 
 def main():

@@ -2,6 +2,9 @@
 
 Back to the library: [README.md](../README.md). Rules: [AGENTS.md](../../AGENTS.md).
 
+## Titles and link previews
+`tools/build_routes.py` gives every generated page its own `<title>`, description, canonical address and link preview (`og:*`): pages from `SITE.pages` (`label`, `description`), characters (`name`, `summary`, and their `image` as the preview picture) and guides (`title`, `summary`). So a link to `/characters/katalina` posted on Discord shows Katalina, not the site's general title. Rerun it after changing any of these.
+
 ## How a page is drawn
 1. GitHub Pages serves `routes/<route>/index.html`, a generated copy of `src/index.html` whose `<base>` points back to the site root. The small script right after `<base>` freezes that base, so `css/`, `js/`, `assets/` and `data/` always resolve.
 2. The scripts load in their numbered order and share one global scope:

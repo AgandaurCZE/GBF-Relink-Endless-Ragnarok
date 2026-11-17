@@ -16,7 +16,13 @@
        "pages": {
         "list": {
          "record": {
-          "opt": {},
+          "opt": {
+           "description": {
+            "types": [
+             "string"
+            ]
+           }
+          },
           "req": {
            "group": {
             "types": [

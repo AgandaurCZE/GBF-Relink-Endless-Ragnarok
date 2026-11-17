@@ -12,43 +12,50 @@
     "id": "home",
     "route": "",
     "label": "Home",
-    "group": ""
+    "group": "",
+    "description": "Fan-made guide to Granblue Fantasy: Relink - Endless Ragnarok: tier list, character guides and tools."
    },
    {
     "id": "tierlist",
     "route": "tierlist",
     "label": "Tier List",
-    "group": "PLAY"
+    "group": "PLAY",
+    "description": "Tier lists for Granblue Fantasy: Relink - Endless Ragnarok."
    },
    {
     "id": "characters",
     "route": "characters",
     "label": "Characters",
-    "group": "PLAY"
+    "group": "PLAY",
+    "description": "Every character in Granblue Fantasy: Relink - Endless Ragnarok, each with its own guide page."
    },
    {
     "id": "guides",
     "route": "guides",
     "label": "Guides",
-    "group": "RESOURCES"
+    "group": "RESOURCES",
+    "description": "Guides for Granblue Fantasy: Relink - Endless Ragnarok."
    },
    {
     "id": "tools",
     "route": "tools",
     "label": "Tools",
-    "group": "RESOURCES"
+    "group": "RESOURCES",
+    "description": "Tools for Granblue Fantasy: Relink - Endless Ragnarok."
    },
    {
     "id": "news",
     "route": "news",
     "label": "News",
-    "group": "UPDATES"
+    "group": "UPDATES",
+    "description": "The official Granblue Fantasy: Relink news from Steam, in one place."
    },
    {
     "id": "patches",
     "route": "patch-notes",
     "label": "Patch Notes",
-    "group": "UPDATES"
+    "group": "UPDATES",
+    "description": "Every Granblue Fantasy: Relink - Endless Ragnarok update, with the official patch notes."
    }
   ]
  },
