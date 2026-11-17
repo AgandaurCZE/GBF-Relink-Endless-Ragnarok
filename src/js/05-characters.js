@@ -22,7 +22,7 @@ PAGES.character = (page) => {
   const panels = tabs
     .map(
       (t) =>
-        `<section class="profile-panel" role="tabpanel" data-tab="${esc(t.id)}" hidden>${blocksHtml(t.blocks || [])}</section>`,
+        `<section class="profile-panel" role="tabpanel" data-tab="${esc(t.id)}" hidden>${t.blocks?.length ? blocksHtml(t.blocks) : emptyState('More coming soon.')}</section>`,
     )
     .join('');
   const body = tabs.length

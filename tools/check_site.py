@@ -35,7 +35,8 @@ SAMPLE_CHARACTER = dict(name='Sample Hero', slug='sample-hero', summary='A sampl
     dict(id='overview', label='Overview', blocks=[dict(type='text', text='First paragraph.\n\nSecond <script>alert(1)</script>'),
                                                   dict(type='stats', title='Stats', items=[dict(label='HP', value='100')])]),
     dict(id='skills', label='Skills', blocks=[dict(type='table', title='Skills', columns=['Skill', 'Cooldown'], rows=[['Slash', '5 s']]),
-                                              dict(type='list', items=['One', 'Two'])])])
+                                              dict(type='list', items=['One', 'Two'])]),
+    dict(id='build', label='Build', blocks=[])])
 SAMPLE_GUIDE = dict(id='sample-guide', title='Sample Guide', summary='A sample guide.', updated='2026-01-01', blocks=[
     dict(type='text', title='First part', text='Text.'), dict(type='note', title='Second part', text='A tip.'),
     dict(type='note', tone='warning', text='A warning.'), dict(type='image', src='assets/ui/og-image.jpg', alt='Sample picture', caption='Caption'),
@@ -69,6 +70,18 @@ def visit(page, url, errors, label):
         if pattern.search(text):
             errors.append(f'{label}: visible text contains {what}: {pattern.search(text)[0]!r}')
     return text
+
+
+DEAD_LINKS = """[...document.querySelectorAll('a[data-route]')]
+  .map((a) => a.dataset.route)
+  .filter((r) => pageForPath(APP_ROOT + r.split('#')[0]).id === 'notfound')
+  .concat([...document.querySelectorAll('a[data-anchor]')].map((a) => a.dataset.anchor).filter((id) => !document.getElementById(id)).map((id) => '#' + id))"""
+
+
+def dead_links(page, label, errors):
+    """Every in-site link on the page leads to a real page, and every contents link to a real section."""
+    for route in page.evaluate(DEAD_LINKS):
+        errors.append(f'{label}: link to {route!r} leads to "Page not found"')
 
 
 def main():
@@ -107,6 +120,7 @@ def main():
                         page = browser.new_page(viewport=viewport)
                         url = f'{base}/{SUBPATH}/{spec["route"]}'
                         visit(page, url, errors, f'{size} /{spec["route"]}')
+                        dead_links(page, f'{size} /{spec["route"]}', errors)
                         title = page.inner_text('#pageTitle')
                         expected = spec['label'] if spec['id'] != 'home' else None
                         if expected and title != expected:
@@ -184,6 +198,7 @@ def main():
                     kinds = page.eval_on_selector_all('.result .muted', 'els => els.map(e => e.textContent)')
                     if not expected <= set(kinds):
                         errors.append(f'search: {query!r} should find {sorted(expected)}; found {kinds}')
+                dead_links(page, 'search results', errors)
                 page.fill('#search', 'zzzz-nothing')
                 if 'Nothing found' not in page.inner_text('#pageBody'):
                     errors.append('search: a search with no results does not say so')
@@ -203,6 +218,7 @@ def main():
                 page.click('a.card')
                 if not page.url.endswith('/guides/sample-guide') or page.inner_text('#pageTitle') != 'Sample Guide':
                     errors.append(f'sample guide: the card did not open the guide ({page.url})')
+                dead_links(page, 'sample guide', errors)
                 page.click('.contents a[data-anchor="third-part"]')
                 page.wait_for_timeout(600)
                 if not page.url.endswith('#third-part') or not page.locator('#third-part').is_visible():
@@ -216,11 +232,15 @@ def main():
                 page.click('.character')
                 if not page.url.endswith('/characters/sample-hero') or page.inner_text('#pageTitle') != 'Sample Hero':
                     errors.append(f'sample character: the card did not open the character page ({page.url})')
+                dead_links(page, 'sample character', errors)
                 page.click('.profile-tab[data-tab="skills"]')
                 if not page.url.endswith('#skills') or not page.is_visible('.profile-panel[data-tab="skills"] table'):
                     errors.append('sample character: the Skills tab did not open')
                 if page.query_selector('.profile-panel script, .profile-head b'):
                     errors.append('sample character: HTML from the data reached the page unescaped')
+                page.click('.profile-tab[data-tab="build"]')
+                if 'More coming soon' not in page.inner_text('.profile-panel[data-tab="build"]'):
+                    errors.append('sample character: an empty tab does not say "More coming soon"')
                 page.click('.back-link')
                 if page.inner_text('#pageTitle') != 'Characters':
                     errors.append('sample character: "All characters" did not go back')

@@ -2,6 +2,13 @@
 
 Every change, newest first: what changed from what into what, the date, the checks run and their result.
 
+## 17 Nov 2026: setup tool and broken-link check (Claude)
+- New `tools/scaffold.py`: `character "Name" [--slug] [--image] [--tabs "Overview,Skills"]` and `guide "Title" [--id] [--summary]` add an empty entry (no invented content), set `meta.updated` and regenerate addresses. Tried both, plus a duplicate (refused); test entries removed again.
+- Empty character tabs show "More coming soon" instead of nothing.
+- `tools/check_site.py`: every in-site link on every page, the sample pages and search results must lead to a real page, and every contents link to a real section; the sample character has an empty tab.
+- `?v=`: 05-characters 2.
+- Checks: `python3 tools/check_all.py`: ALL CHECKS PASSED.
+
 ## 17 Nov 2026: keyboard and reading comfort (Claude)
 - "/" jumps to the search box from anywhere (on phones it opens the menu), Esc clears the search and closes the menu.
 - A round "Back to top" button after scrolling down a screen; a "Skip to content" link for keyboard users; visible focus outlines; animations off for visitors who ask their system for less motion.

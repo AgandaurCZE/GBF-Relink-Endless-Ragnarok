@@ -26,6 +26,9 @@ Back to the library: [README.md](../README.md). Rules: [AGENTS.md](../../AGENTS.
 2. Write `PAGES.<id> = () => '...html...'` in the matching `src/js/` file (or a new numbered file, added to `src/index.html`).
 3. `python3 tools/build_routes.py`, prettier, new `?v=`, `python3 tools/check_all.py`.
 
+## Adding content quickly
+`python3 tools/scaffold.py character "Name" --tabs "Overview,Skills,Build"` or `python3 tools/scaffold.py guide "Title" --summary "…"` adds an empty entry to `data/game.json` (name and address only, nothing invented), sets `meta.updated` to today and regenerates the page addresses. Empty tabs show "More coming soon"; a guide without blocks is listed as "Coming soon".
+
 ## Running it locally
 `python3 tools/serve_site.py` builds the site into a temporary folder and serves it at http://127.0.0.1:8000/. Restart it after an edit. `file://` doesn't work (the page fetches its data).
 
@@ -40,7 +43,7 @@ Back to the library: [README.md](../README.md). Rules: [AGENTS.md](../../AGENTS.
 | file rules | CRLF line endings, badly formatted JSON, a css/js file without `?v=` or not loaded, a non-picture in `assets/`, a picture over 5 MB, an `.html` file in the top folder | As the message says |
 | JS syntax (`node --check`) | a script doesn't parse | Fix the script |
 | cache numbers | a css/js file changed but kept its `?v=` | New `?v=` in `src/index.html` |
-| browser (`tools/check_site.py`) | on any page at desktop or phone size: a console error, a file that fails to load, a wrong title, menu navigation or Back broken, the news renderer not working with a sample post, visible text with "David", "TODO", "undefined", "NaN" | Fix the page |
+| browser (`tools/check_site.py`) | on any page at desktop or phone size: a console error, a file that fails to load, a wrong title, an in-site link or contents link that leads nowhere, menu navigation or Back broken, the news renderer not working with a sample post, visible text with "David", "TODO", "undefined", "NaN" | Fix the page |
 | formatting (prettier) | warning only: src/js or src/css not formatted | `npx --yes prettier@3.9.10 --write src/js src/css` |
 
 On every push to `main`, `.github/workflows/deploy.yml` runs the same script on GitHub, then assembles the site with `tools/build_site.py` and publishes it to GitHub Pages, **only if every check passed**. The run's summary page shows the check output.
