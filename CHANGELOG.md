@@ -2,6 +2,12 @@
 
 Every change, newest first: what changed from what into what, the date, the checks run and their result.
 
+## 17 Nov 2026: Tier List Editor and import (Claude)
+- New artifact **Relink Tier List Editor** (https://claude.ai/artifact/NcqRc5BJkia6KCAPyz2pVN, source `docs/testkit/relink-tier-editor.html`): David sets the tiers (or starts from S–D), creates lists, adds characters, and places them by dragging (mouse) or tapping (phone); the order inside a tier is kept. Saved in the artifact's database; only he can write. "Copy for the guide" gives `TIER_LIST`.
+- New `tools/import_tiers.py`: puts an editor export into `data/game.json`, prints who moved where per list (`--dry-run` first), dates changed lists, refuses names that aren't characters unless `--add-missing`. Tried: missing names refused, added with the flag, an in-tier reorder recognised; test data removed again.
+- Both tried in a browser with a stand-in database (tiers, list, three characters, tap and drag moves, export). Routine in `docs/README.md`.
+- Checks: `python3 tools/check_all.py`: ALL CHECKS PASSED.
+
 ## 17 Nov 2026: several tier lists (Claude)
 - `TIER_LIST` changed from `{tiers, ratings: {name: tier}}` into `{tiers, lists: [{id, label, about?, updated?, rows: {tier: [names in order]}}]}`, so there can be several lists (tabs, `/tierlist#<id>`) and the order inside a tier is kept. Both were empty, so no ratings moved. `tools/data_shape.json` updated (`ratings` → `lists`; nothing else changed).
 - **Fixed my own mistake:** the tier-list rules in `tools/validate_data.py` had been deleted by accident in the guide-pages commit `c45b27b`. They're back in the new form: tier colours, list ids and dates, every placed name is a character, every tier exists, nobody placed twice in one list. Tried with five broken entries: all five reported.

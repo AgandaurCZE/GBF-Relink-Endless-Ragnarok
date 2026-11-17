@@ -9,6 +9,7 @@ Back to the library: [README.md](../README.md).
 ## Tools ready · 17 Nov 2026
 - **Test Notebook** for measurements while playing, with voice entry, sorting, per-subject summary and CSV/JSON copy: https://claude.ai/artifact/3TRUSLHHo3JA7FLkcD8EPX (details in [docs/README.md](../README.md)).
 - **Character pages** (`/characters/<slug>`, tabs) and **guide pages** (`/guides/<id>`, contents list), both built from blocks (text, list, table, stats, note, image): waiting for content.
+- **Tier List Editor**: https://claude.ai/artifact/NcqRc5BJkia6KCAPyz2pVN; results come into the site with `tools/import_tiers.py`. The site shows several lists as tabs.
 - **`tools/scaffold.py`** adds an empty character or guide; **`tools/inbox_images.py`** turns screenshots from `inbox/` into site pictures.
 - Site: search (`/` key), 404 page, share image, sitemap, post links and "New" marks on News/Patch Notes, back to top, skip link.
 - The checks cover all of it, including broken in-site links.

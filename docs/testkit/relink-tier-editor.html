@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Relink Tier List Editor</title>
+<style>
+:root{--bg:#0b1424;--panel:#13213a;--panel2:#1a2c4b;--line:#27406a;--text:#e6eefb;--muted:#9fb2d3;--sky:#4fb3ff;--gold:#f2c45a;--red:#ff7a7a;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:6px 12px}
+button.primary{background:var(--sky);border-color:var(--sky);color:#06121f;font-weight:700}
+button.danger{border-color:var(--red);color:var(--red);background:none}
+input,textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 9px}
+label{display:block;font-size:13px;color:var(--muted);margin:10px 0 3px}
+main{max-width:1150px;margin:0 auto;padding:20px}
+h1{font-size:20px;margin:0}
+.sub{color:var(--gold);font-size:12px;font-weight:600}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.top{display:flex;justify-content:space-between;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:14px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin-bottom:12px}
+.tab{background:none;border:0;border-bottom:3px solid transparent;border-radius:0;color:var(--muted);padding:8px 12px}
+.tab.on{border-bottom-color:var(--gold);color:var(--text)}
+.status{font-size:12px;color:var(--muted)}
+.status.warn{color:var(--gold)}
+.tier{display:flex;gap:8px;margin-bottom:8px;min-height:62px}
+.tier-label{flex:0 0 62px;display:grid;place-items:center;border-radius:10px;color:#0b1424;font-weight:800;font-size:20px;text-align:center;word-break:break-word;padding:4px}
+.zone{flex:1;display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;padding:8px;background:var(--panel);border:1px dashed var(--line);border-radius:10px;min-height:62px}
+.zone.target{border-color:var(--sky);background:var(--panel2)}
+.zone.pickable{cursor:pointer;border-color:var(--sky)}
+.pool{margin-top:16px}
+.pool .zone{border-style:solid}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;background:var(--panel2);border:1px solid var(--line);border-radius:999px;cursor:grab;user-select:none;touch-action:manipulation}
+.chip .dot{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:800;color:#0b1424}
+.chip.sel{outline:2px solid var(--gold);outline-offset:1px}
+.chip.drag{opacity:.4}
+.hint{color:var(--muted);font-size:13px;margin:6px 0 12px}
+.empty{padding:22px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:10px}
+.dialog{position:fixed;inset:0;background:rgb(0 0 0/.55);display:grid;place-items:center;padding:16px;z-index:5}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;width:min(540px,100%);max-height:90vh;overflow:auto}
+.ask{background:var(--panel2);border:1px solid var(--gold);border-radius:8px;padding:8px 10px;margin-top:10px}
+code{background:var(--panel2);padding:1px 5px;border-radius:5px}
+</style>
+</head>
+<body>
+<main>
+ <div class="top">
+  <div><h1>Tier List Editor</h1><div class="sub">Relink · Endless Ragnarok</div></div>
+  <div class="row"><button id="tiersBtn">Edit tiers</button><button id="rosterBtn">Characters</button><button class="primary" id="exportBtn">Copy for the guide</button></div>
+ </div>
+ <div class="tabs" id="tabs"></div>
+ <div id="board"><div class="empty">Loading…</div></div>
+ <p class="status" id="status">Connecting…</p>
+</main>
+<div id="dialog"></div>
+<script>
+/* Relink Tier List Editor. Database:
+   config/tiers  {tiers: [{name, color}]}          best first
+   roster/<id>   {name, order}                     the characters to place (Claude syncs them from data/game.json)
+   lists/<id>    {label, about, order, rows: {tier: [names in order]}, updatedAt}
+   "Copy for the guide" gives TIER_LIST for data/game.json: python3 tools/import_tiers.py <file>. */
+const S = { db: null, tiers: [], roster: [], lists: [], current: null, sel: null, canWrite: true, dragName: null };
+const $ = (id) => document.getElementById(id);
+const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const slug = (t) => String(t).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'list';
+const PRESET = [['S', '#ff7a7a'], ['A', '#f2c45a'], ['B', '#7bd88f'], ['C', '#4fb3ff'], ['D', '#a991f7']];
+function status(t, warn) { $('status').textContent = t; $('status').className = 'status' + (warn ? ' warn' : ''); }
+
+async function write(fn, ok) {
+  if (!S.db) return status('Not connected: nothing was saved.', true);
+  try { await fn(); status(ok || 'Saved.'); }
+  catch (e) {
+    if (e && e.code === 'invalid_argument') { S.canWrite = false; status('You can only look at this editor.', true); }
+    else status('Could not save (' + ((e && e.code) || 'error') + '). Try again.', true);
+  }
+}
+
+const list = () => S.lists.find((l) => l.id === S.current);
+function placedIn(l) { const m = {}; Object.entries(l.rows || {}).forEach(([t, ns]) => ns.forEach((n) => (m[n] = t))); return m; }
+function colorOf(name) { let h = 0; for (const c of name) h = (h * 31 + c.charCodeAt(0)) % 360; return `hsl(${h} 70% 70%)`; }
+function chip(name) {
+  const initials = name.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+  return `<span class="chip ${S.sel === name ? 'sel' : ''}" draggable="${S.canWrite}" data-name="${esc(name)}"><span class="dot" style="background:${colorOf(name)}">${esc(initials)}</span>${esc(name)}</span>`;
+}
+
+// ===== Drawing
+function render() {
+  $('tabs').innerHTML = S.lists.map((l) => `<button class="tab ${l.id === S.current ? 'on' : ''}" data-list="${esc(l.id)}">${esc(l.label)}</button>`).join('')
+    + (S.canWrite ? '<button class="tab" data-act="new-list">+ New list</button>' : '');
+  if (!S.tiers.length) {
+    $('board').innerHTML = `<div class="empty"><p><strong>No tiers yet.</strong> Tiers are shared by every list.</p>${S.canWrite ? '<button class="primary" data-act="edit-tiers">Set up tiers</button>' : ''}</div>`;
+    return;
+  }
+  const l = list();
+  if (!l) {
+    $('board').innerHTML = `<div class="empty"><p><strong>No lists yet.</strong> A list is one tier list on the site, e.g. "Overall" or "Solo". Several lists show as tabs.</p>${S.canWrite ? '<button class="primary" data-act="new-list">Create a list</button>' : ''}</div>`;
+    return;
+  }
+  const placed = placedIn(l);
+  const pool = S.roster.map((r) => r.name).filter((n) => !placed[n]);
+  const pick = S.sel ? ' pickable' : '';
+  $('board').innerHTML = `<div class="row" style="justify-content:space-between;margin-bottom:6px">
+     <div><strong>${esc(l.label)}</strong>${l.about ? ` <span class="muted" style="color:var(--muted)">· ${esc(l.about)}</span>` : ''}</div>
+     ${S.canWrite ? '<button data-act="edit-list">Rename / delete</button>' : ''}</div>
+    <p class="hint">${S.sel ? `Tap a tier or a character to place <strong>${esc(S.sel)}</strong> there (before that character); tap it again to cancel.` : 'Drag characters between tiers, or tap one and then tap where it goes. The order inside a tier is kept.'}</p>
+    ${S.tiers.map((t) => `<div class="tier"><div class="tier-label" style="background:${esc(t.color)}">${esc(t.name)}</div>
+      <div class="zone${pick}" data-zone="${esc(t.name)}">${(l.rows?.[t.name] || []).filter((n) => S.roster.some((r) => r.name === n)).map(chip).join('')}</div></div>`).join('')}
+    <div class="pool"><strong>Not placed</strong> <span class="hint">(${pool.length})</span>
+     <div class="zone${pick}" data-zone="">${pool.map(chip).join('') || '<span class="hint">Everyone is placed.</span>'}</div></div>`;
+}
+
+// ===== Moving a character: into tier `to` ('' = not placed), before `before` (or at the end)
+async function move(name, to, before) {
+  const l = list(); if (!l || !S.canWrite) return;
+  const rows = JSON.parse(JSON.stringify(l.rows || {}));
+  Object.keys(rows).forEach((t) => (rows[t] = rows[t].filter((n) => n !== name)));
+  if (to) {
+    rows[to] = rows[to] || [];
+    const i = before ? rows[to].indexOf(before) : -1;
+    rows[to].splice(i < 0 ? rows[to].length : i, 0, name);
+  }
+  Object.keys(rows).forEach((t) => { if (!rows[t].length) delete rows[t]; });
+  l.rows = rows; S.sel = null; render();
+  await write(() => S.db.doc('lists/' + l.id).update({ rows, updatedAt: Date.now() }), `Moved ${name}.`);
+}
+
+// ===== Dialogs
+function dialog(html) { $('dialog').innerHTML = `<div class="dialog"><form class="card" id="dlg">${html}</form></div>`; const f = $('dlg').querySelector('input,textarea'); if (f) f.focus(); }
+function tiersDialog() {
+  const text = (S.tiers.length ? S.tiers.map((t) => [t.name, t.color]) : PRESET).map(([n, c]) => `${n} ${c}`).join('\n');
+  dialog(`<h2 style="margin-top:0">Tiers</h2><p class="hint">One per line, best first: a name, then a colour like <code>#f2c45a</code>. Renaming a tier keeps its characters only if the name stays the same.</p>
+    <textarea name="tiers" rows="7">${esc(text)}</textarea>
+    <div class="row" style="margin-top:12px"><button class="primary" type="submit">Save tiers</button><button type="button" data-act="close">Cancel</button></div>`);
+  $('dlg').dataset.kind = 'tiers';
+}
+function listDialog(l) {
+  dialog(`<h2 style="margin-top:0">${l ? 'Rename list' : 'New list'}</h2>
+    <label>Name on the site</label><input name="label" required value="${esc(l ? l.label : '')}" placeholder="Overall, Solo, Chaos difficulty…">
+    <label>One line about it (optional, shown above the list)</label><input name="about" value="${esc(l ? l.about : '')}">
+    <div class="row" style="justify-content:space-between;margin-top:14px"><div class="row"><button class="primary" type="submit">${l ? 'Save' : 'Create'}</button><button type="button" data-act="close">Cancel</button></div>
+    ${l ? '<button type="button" class="danger" data-act="delete-list">Delete list</button>' : ''}</div><div id="dlgAsk"></div>`);
+  $('dlg').dataset.kind = l ? 'edit-list' : 'new-list';
+}
+function rosterDialog() {
+  dialog(`<h2 style="margin-top:0">Characters</h2><p class="hint">The characters you can place. Claude fills this from the guide's data; you can add names here too. Names must match the guide exactly.</p>
+    <div class="row">${S.roster.map((r) => `<span class="chip" style="cursor:default">${esc(r.name)}${S.canWrite ? ` <button type="button" class="danger" style="padding:0 6px" data-unroster="${esc(r.id)}">×</button>` : ''}</span>`).join('') || '<span class="hint">None yet.</span>'}</div>
+    ${S.canWrite ? '<label>Add characters (one per line)</label><textarea name="names" rows="3"></textarea>' : ''}
+    <div class="row" style="margin-top:12px">${S.canWrite ? '<button class="primary" type="submit">Add</button>' : ''}<button type="button" data-act="close">Close</button></div>`);
+  $('dlg').dataset.kind = 'roster';
+}
+
+// ===== Events
+document.addEventListener('click', async (ev) => {
+  const t = ev.target;
+  const tab = t.closest('[data-list]');
+  if (tab) { S.current = tab.dataset.list; S.sel = null; location.hash = S.current; render(); return; }
+  const unroster = t.closest('[data-unroster]');
+  if (unroster) { await write(() => S.db.doc('roster/' + unroster.dataset.unroster).delete(), 'Removed.'); rosterDialog(); return; }
+  const act = t.closest('[data-act]')?.dataset.act || ({ tiersBtn: 'edit-tiers', rosterBtn: 'roster', exportBtn: 'export' })[t.id];
+  if (act === 'close') { $('dialog').innerHTML = ''; return; }
+  if (act === 'edit-tiers') return S.canWrite ? tiersDialog() : null;
+  if (act === 'new-list') return listDialog(null);
+  if (act === 'edit-list') return listDialog(list());
+  if (act === 'roster') return rosterDialog();
+  if (act === 'delete-list') {
+    const l = list();
+    $('dlgAsk').innerHTML = `<div class="ask">Delete "${esc(l.label)}"? <button type="button" class="danger" id="yes">Yes, delete</button> <button type="button" id="no">Keep it</button></div>`;
+    $('no').onclick = () => ($('dlgAsk').innerHTML = '');
+    $('yes').onclick = async () => { $('dialog').innerHTML = ''; await write(() => S.db.doc('lists/' + l.id).delete(), 'List deleted.'); S.current = null; };
+    return;
+  }
+  if (act === 'export') {
+    const out = { tiers: S.tiers, lists: S.lists.map((l) => ({ id: l.id, label: l.label, ...(l.about ? { about: l.about } : {}), rows: l.rows || {} })) };
+    try { await navigator.clipboard.writeText(JSON.stringify(out, null, 1)); status('Copied. Paste it into a file in inbox/ (e.g. inbox/tiers.json) or into the chat.'); }
+    catch { status('The browser blocked copying.', true); }
+    return;
+  }
+  if (!S.canWrite) return;
+  const c = t.closest('.chip[data-name]');
+  const zone = t.closest('[data-zone]');
+  if (c && !S.sel) { S.sel = c.dataset.name; render(); return; }
+  if (c && S.sel === c.dataset.name) { S.sel = null; render(); return; }
+  if (S.sel && zone) { const before = c ? c.dataset.name : null; return move(S.sel, zone.dataset.zone, before); }
+});
+
+document.addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const f = new FormData(ev.target); const kind = ev.target.dataset.kind;
+  if (kind === 'tiers') {
+    const tiers = String(f.get('tiers')).split('\n').map((x) => x.trim()).filter(Boolean).map((x) => {
+      const m = x.match(/^(.*?)\s+(#[0-9a-fA-F]{6})$/); return m ? { name: m[1].trim(), color: m[2] } : { name: x, color: '#9fb2d3' };
+    });
+    if (!tiers.length) return;
+    $('dialog').innerHTML = '';
+    await write(() => S.db.doc('config/tiers').set({ tiers }), 'Tiers saved.');
+  }
+  if (kind === 'new-list' || kind === 'edit-list') {
+    const label = String(f.get('label')).trim(); const about = String(f.get('about')).trim();
+    if (!label) return;
+    $('dialog').innerHTML = '';
+    if (kind === 'edit-list') await write(() => S.db.doc('lists/' + S.current).update({ label, about }), 'List saved.');
+    else {
+      let id = slug(label); while (S.lists.some((l) => l.id === id)) id += '-2';
+      await write(() => S.db.doc('lists/' + id).set({ label, about, order: Date.now(), rows: {}, updatedAt: Date.now() }), 'List created.');
+      S.current = id; location.hash = id;
+    }
+  }
+  if (kind === 'roster') {
+    const names = String(f.get('names') || '').split('\n').map((x) => x.trim()).filter((n) => n && !S.roster.some((r) => r.name === n));
+    let order = S.roster.length;
+    for (const name of names) await write(() => S.db.doc('roster/' + slug(name)).set({ name, order: order++ }), 'Added.');
+    rosterDialog();
+  }
+});
+
+// Drag and drop (mouse); tapping works everywhere
+document.addEventListener('dragstart', (ev) => { const c = ev.target.closest?.('.chip[data-name]'); if (!c) return; S.dragName = c.dataset.name; c.classList.add('drag'); ev.dataTransfer.setData('text/plain', S.dragName); });
+document.addEventListener('dragend', () => { S.dragName = null; document.querySelectorAll('.target,.drag').forEach((e) => e.classList.remove('target', 'drag')); });
+document.addEventListener('dragover', (ev) => { const z = ev.target.closest?.('[data-zone]'); if (!z || !S.dragName) return; ev.preventDefault(); document.querySelectorAll('.target').forEach((e) => e !== z && e.classList.remove('target')); z.classList.add('target'); });
+document.addEventListener('drop', (ev) => {
+  const z = ev.target.closest?.('[data-zone]'); if (!z || !S.dragName) return; ev.preventDefault();
+  const c = ev.target.closest('.chip[data-name]');
+  move(S.dragName, z.dataset.zone, c && c.dataset.name !== S.dragName ? c.dataset.name : null);
+});
+
+// ===== Data
+(async () => {
+  render();
+  if (!window.claude || !window.claude.use) return status('Open this editor on claude.ai to save.', true);
+  const db = await claude.use('db');
+  if (!db) return status('Saving is not available in this view. Open the editor on claude.ai.', true);
+  S.db = db;
+  const user = await claude.use('user');
+  if (user && user.can) { try { if ((await user.can('data.write')) === false) S.canWrite = false; } catch {} }
+  const timer = setTimeout(() => status("The saved data can't be reached yet. Check your connection.", true), 10000);
+  let live = 0; const ok = (m) => { if (!m.fromCache && ++live === 3) { clearTimeout(timer); status('All changes saved online.'); } };
+  const fail = (e) => { clearTimeout(timer); status('Could not load (' + e.code + ').', true); };
+  db.doc('config/tiers').onSnapshot((d) => { S.tiers = (d.exists && d.data().tiers) || []; ok(d.metadata); render(); }, fail);
+  db.collection('roster').orderBy('order').onSnapshot((q) => { S.roster = q.docs.map((d) => ({ id: d.id, ...d.data() })); ok(q.metadata); render(); }, fail);
+  db.collection('lists').orderBy('order').onSnapshot((q) => {
+    S.lists = q.docs.map((d) => ({ id: d.id, rows: {}, ...d.data() }));
+    if (!S.lists.some((l) => l.id === S.current)) S.current = (S.lists.find((l) => l.id === location.hash.slice(1)) || S.lists[0] || {}).id || null;
+    ok(q.metadata); if (!$('dialog').innerHTML) render();
+  }, fail);
+})();
+</script>
+</body>
+</html>
