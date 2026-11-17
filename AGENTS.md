@@ -37,7 +37,7 @@ Then read the library index [`docs/README.md`](docs/README.md), [`docs/library/W
 ## Data rules
 
 1. **The repository is the only source of truth about the game (David, 17 Nov 2026).** David tests and finds everything out himself; game data comes only from his screenshots, in-game data and notes, saved here. **Never look up the game on the internet** (wikis, guides, databases, videos, other tier lists), not even to check a number. The internet is fine for coding, page structure and tools. **Never invent numbers**; if his sources conflict, flag it and ask. The News and Patch Notes pages show the official Steam posts as they are; they are not a source for `data/game.json`.
-2. **Tiers are never set by formula.** `TIER_LIST.ratings` holds only ratings agreed with David.
+2. **Tiers are never set by formula.** `TIER_LIST.lists` holds only placements agreed with David (he makes them in the Tier List Editor).
 3. **Keep names exact**: character, weapon, sigil and skill names are cross-references between keys.
 4. **Nothing a visitor reads may be an internal note**: no David, no "measured", "tested", "not confirmed yet", no TODOs. Internal notes go in a `note` field the page doesn't print, in `data/research.json`, or in `docs/`. The browser check fails on some of these words; the rest is on you.
 5. Each data rule that can be checked gets a line in `tools/validate_data.py`.
