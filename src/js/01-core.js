@@ -13,7 +13,7 @@ let GAME = {
   meta: {},
   SITE: { pages: [] },
   CHARACTERS: [],
-  TIER_LIST: { tiers: [], ratings: {} },
+  TIER_LIST: { tiers: [], lists: [] },
   GUIDES: [],
   TOOLS: [],
 };

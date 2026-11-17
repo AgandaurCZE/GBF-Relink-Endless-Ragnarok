@@ -54,8 +54,8 @@
      "record": {
       "opt": {},
       "req": {
-       "ratings": {
-        "map": null
+       "lists": {
+        "list": null
        },
        "tiers": {
         "list": null

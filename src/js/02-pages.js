@@ -61,19 +61,56 @@ PAGES.home = () => {
   <h2 class="section-title">Explore</h2><div class="grid shortcuts">${cards}</div>`;
 };
 
-// ===== Tier list: TIER_LIST.tiers (order, colours) and TIER_LIST.ratings (character name -> tier)
+// ===== Tier list: TIER_LIST.tiers [{name, color}] (best first) and TIER_LIST.lists [{id, label, about?, updated?,
+// rows: {tier name: [character names, in order]}}]. Several lists show as tabs; /tierlist#<list id> opens one.
 PAGES.tierlist = () => {
-  const { tiers, ratings } = GAME.TIER_LIST;
-  if (!tiers.length || !Object.keys(ratings).length) return emptyState('The tier list is coming soon.');
+  const { tiers, lists } = GAME.TIER_LIST;
+  const shown = lists.filter((l) => Object.values(l.rows || {}).some((names) => names.length));
+  if (!tiers.length || !shown.length) return emptyState('The tier list is coming soon.');
+  const tabs =
+    shown.length > 1
+      ? `<div class="profile-tabs" role="tablist">${shown
+          .map(
+            (l) =>
+              `<button type="button" class="profile-tab tier-tab" role="tab" data-list="${esc(l.id)}" aria-selected="false">${esc(l.label)}</button>`,
+          )
+          .join('')}</div>`
+      : '';
+  return (
+    tabs +
+    shown
+      .map((l) => `<section class="tier-list" data-list="${esc(l.id)}" hidden>${tierListHtml(l, tiers)}</section>`)
+      .join('')
+  );
+};
+
+function tierListHtml(list, tiers) {
   const byName = Object.fromEntries(GAME.CHARACTERS.map((c) => [c.name, c]));
-  return tiers
+  const head = `${list.about ? `<p>${esc(list.about)}</p>` : ''}${list.updated ? `<p class="muted">Updated ${formatDate(list.updated)}</p>` : ''}`;
+  const rows = tiers
     .map((tier) => {
-      const names = Object.keys(ratings).filter((n) => ratings[n] === tier.name);
-      const chips = names.map((n) => characterChip(byName[n] || { name: n })).join('');
+      const chips = (list.rows[tier.name] || []).map((n) => characterChip(byName[n] || { name: n })).join('');
       return `<div class="tier-row"><div class="tier-label" style="--tier:${esc(tier.color)}">${esc(tier.name)}</div><div class="tier-items">${chips}</div></div>`;
     })
     .join('');
-};
+  return head + rows;
+}
+
+// Called after the Tier List is drawn: show the list named in the address, or the first one.
+function tierTabs() {
+  const sections = [...document.querySelectorAll('.tier-list')];
+  if (!sections.length) return;
+  const show = (id, record) => {
+    const target = sections.find((s) => s.dataset.list === id) || sections[0];
+    sections.forEach((s) => (s.hidden = s !== target));
+    document
+      .querySelectorAll('.tier-tab')
+      .forEach((b) => b.setAttribute('aria-selected', String(b.dataset.list === target.dataset.list)));
+    if (record) history.replaceState(null, '', '#' + target.dataset.list);
+  };
+  document.querySelectorAll('.tier-tab').forEach((b) => b.addEventListener('click', () => show(b.dataset.list, true)));
+  show(decodeURIComponent(location.hash.slice(1)), false);
+}
 
 // ===== Characters: CHARACTERS[] {name, slug, image, tabs} (each character's own page: js/04-characters.js)
 PAGES.characters = () => {

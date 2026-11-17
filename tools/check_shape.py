@@ -25,7 +25,7 @@ import sys
 ROOT = Path(__file__).resolve().parent.parent
 SHAPE_FILE = ROOT / 'tools' / 'data_shape.json'
 FILES = ['data/game.json', 'data/steam-news.json']   # every data file the site reads
-MAPS = {'TIER_LIST.ratings'}                         # objects whose keys are data, not field names
+MAPS = {'TIER_LIST.lists[].rows'}                   # objects whose keys are data, not field names
 
 
 def kind(v):

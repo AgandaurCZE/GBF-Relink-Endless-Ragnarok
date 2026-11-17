@@ -101,6 +101,28 @@ for g in d['GUIDES']:
     if g.get('updated') and not re.fullmatch(r'\d{4}-\d{2}-\d{2}', g['updated']):
         bad(f'GUIDES[{g.get("id")}]: updated must be a date YYYY-MM-DD')
     blocks(g.get('blocks', []), f'GUIDES[{g.get("id")}]')
+# Tier list: tiers in order with a colour; each list places characters in tiers, in order, each at most once
+tiers = unique(d['TIER_LIST']['tiers'], 'name', 'TIER_LIST.tiers')
+unique(d['TIER_LIST']['lists'], 'id', 'TIER_LIST.lists')
+for t in d['TIER_LIST']['tiers']:
+    if not re.fullmatch(r'#[0-9a-fA-F]{6}', str(t.get('color', ''))):
+        bad(f'TIER_LIST.tiers[{t.get("name")}]: color must be a colour like #f2c45a')
+for lst in d['TIER_LIST']['lists']:
+    where = f'TIER_LIST.lists[{lst.get("id")}]'
+    if not re.fullmatch(NAME, str(lst.get('id', ''))):
+        bad(f'{where}: id must be lowercase letters and digits with hyphens (it is the address /tierlist#<id>)')
+    if lst.get('updated') and not re.fullmatch(r'\d{4}-\d{2}-\d{2}', lst['updated']):
+        bad(f'{where}: updated must be a date YYYY-MM-DD')
+    placed = {}
+    for tier, names_in_tier in lst.get('rows', {}).items():
+        if tier not in tiers:
+            bad(f'{where}.rows: tier {tier!r} is not in TIER_LIST.tiers')
+        for name in names_in_tier:
+            if name not in names:
+                bad(f'{where}.rows[{tier}]: {name!r} is not in CHARACTERS')
+            if name in placed:
+                bad(f'{where}: {name!r} is placed twice ({placed[name]!r} and {tier!r})')
+            placed[name] = tier
 unique(d['GUIDES'], 'id', 'GUIDES')
 unique(d['TOOLS'], 'id', 'TOOLS')
 

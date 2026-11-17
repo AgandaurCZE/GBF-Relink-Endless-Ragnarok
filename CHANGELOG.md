@@ -2,6 +2,13 @@
 
 Every change, newest first: what changed from what into what, the date, the checks run and their result.
 
+## 17 Nov 2026: several tier lists (Claude)
+- `TIER_LIST` changed from `{tiers, ratings: {name: tier}}` into `{tiers, lists: [{id, label, about?, updated?, rows: {tier: [names in order]}}]}`, so there can be several lists (tabs, `/tierlist#<id>`) and the order inside a tier is kept. Both were empty, so no ratings moved. `tools/data_shape.json` updated (`ratings` → `lists`; nothing else changed).
+- **Fixed my own mistake:** the tier-list rules in `tools/validate_data.py` had been deleted by accident in the guide-pages commit `c45b27b`. They're back in the new form: tier colours, list ids and dates, every placed name is a character, every tier exists, nobody placed twice in one list. Tried with five broken entries: all five reported.
+- `tools/check_site.py`: sample lists (tabs only for lists with entries, `#solo` link, switching tabs, no dead links).
+- `?v=`: 01-core 2, 02-pages 5, 09-startup 10.
+- Checks: `python3 tools/check_all.py`: ALL CHECKS PASSED.
+
 ## 17 Nov 2026: installable app, offline reading, light mode (Claude)
 - **Installable app:** `src/manifest.webmanifest` and app icons (`assets/ui/icon-*.png`, drawn from the site emblem), published at the site root by `tools/build_site.py`; an "Install app" button appears in the menu where the browser offers installing.
 - **Offline reading:** `src/sw.js` keeps the last copy of pages and data (always fetched fresh when online) and css/js/pictures; offline, any page opens, even one never visited (via `404.html`).

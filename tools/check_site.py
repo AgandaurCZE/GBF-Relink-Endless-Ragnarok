@@ -100,6 +100,9 @@ def main():
             dict(posts=[SAMPLE_POST], patches=[dict(SAMPLE_POST, id='2', title='Ver. 9.9.9 Update Information', version='9.9.9')])))
         game = json.loads((sample_dir / 'data' / 'game.json').read_text(encoding='utf-8'))
         game['CHARACTERS'] = [SAMPLE_CHARACTER]
+        game['TIER_LIST'] = dict(tiers=[dict(name='S', color='#f2c45a'), dict(name='A', color='#4fb3ff')], lists=[
+            dict(id='overall', label='Overall', about='Sample list.', rows=dict(S=['Sample Hero'], A=[])),
+            dict(id='solo', label='Solo', rows=dict(A=['Sample Hero'])), dict(id='empty', label='Empty', rows=dict())])
         game['GUIDES'] = [SAMPLE_GUIDE, dict(id='later', title='Later guide', summary='Not written yet.')]
         (sample_dir / 'data' / 'game.json').write_text(json.dumps(game))
         entry = (ROOT / 'src' / 'index.html').read_text(encoding='utf-8').replace('<base href="./">', '<base href="../../">', 1)
@@ -205,6 +208,19 @@ def main():
                     except Exception as e:
                         errors.append(f'offline: /{route} did not open without a connection ({str(e).splitlines()[0]})')
                 context.close()
+                # Tier list: one tab per list with entries, a tab switches lists, a link opens a list, chips link on
+                page = browser.new_page(viewport=VIEWPORTS['phone'])
+                visit(page, f'{base}/sample/{SUBPATH}/tierlist#solo', errors, 'sample tier list')
+                tabs = page.eval_on_selector_all('.tier-tab', 'els => els.map((e) => e.textContent)')
+                if tabs != ['Overall', 'Solo']:
+                    errors.append(f'sample tier list: tabs should be Overall and Solo (empty lists hidden); got {tabs}')
+                if not page.is_visible('.tier-list[data-list="solo"] .character'):
+                    errors.append('sample tier list: /tierlist#solo did not open the Solo list')
+                page.click('.tier-tab[data-list="overall"]')
+                if not page.url.endswith('#overall') or not page.is_visible('.tier-list[data-list="overall"] .tier-label'):
+                    errors.append('sample tier list: the Overall tab did not switch lists')
+                dead_links(page, 'sample tier list', errors)
+                page.close()
                 # Keyboard: "/" focuses search, Esc clears it; "Back to top" shows after scrolling (sample news is long enough)
                 page = browser.new_page(viewport=dict(width=1280, height=400))
                 visit(page, f'{base}/{SUBPATH}/patch-notes', errors, 'keyboard')

@@ -52,6 +52,7 @@ function showPage(page) {
   if (page.id === 'character') characterTabs(page.character);
   if (page.id === 'guide') guideScroll();
   if (page.id === 'news' || page.id === 'patches') postsShown(page.id);
+  if (page.id === 'tierlist') tierTabs();
 }
 
 function go(route) {
